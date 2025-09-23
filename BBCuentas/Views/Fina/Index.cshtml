@@ -1,0 +1,122 @@
+@{
+    Layout = "~/Views/Shared/_FinaLayout.cshtml";
+    ViewBag.Title = "Portal CONAUTOPCI&Oacute;N";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron fina-card">
+            <h1 class="display-4">
+                <i class="fa fa-building text-primary"></i>
+                Bienvenido al Portal CONAUTOPCI&Oacute;N
+            </h1>
+            <p class="lead">
+                Acceda a sus estados de cuenta y gestione su informaci&oacute;n de manera segura.
+            </p>
+            <hr class="my-4">
+            <p>Este portal est&aacute; dise&ntilde;ado espec&iacute;ficamente para clientes de CONAUTOPCI&Oacute;N con funcionalidades optimizadas.</p>
+        </div>
+    </div>
+</div>
+
+@if (ViewData["Message"] != null)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-warning" role="alert">
+                <i class="fa fa-exclamation-triangle"></i>
+                @ViewData["Message"]
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card fina-card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fa fa-file-text"></i>
+                    Estados de Cuenta
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Consulte y descargue sus estados de cuenta de CONAUTOPCI&Oacute;N.</p>
+                <a href="@Url.Action("AccountStatement", "Fina")" class="btn fina-btn text-white">
+                    <i class="fa fa-arrow-right"></i>
+                    Acceder a Estados de Cuenta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card fina-card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fa fa-lock"></i>
+                    Seguridad
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Gestione la seguridad de su cuenta y cambie su contras&ntilde;a.</p>
+                <a href="@Url.Action("Security", "Fina")" class="btn fina-btn text-white">
+                    <i class="fa fa-arrow-right"></i>
+                    Configuraci&oacute;n de Seguridad
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card fina-card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fa fa-info-circle"></i>
+                    Informaci&oacute;n Importante
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="fa fa-check-circle text-success"></i>
+                        Portal exclusivo para clientes de CONAUTOPCI&Oacute;N
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fa fa-check-circle text-success"></i>
+                        Acceso seguro a sus documentos
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fa fa-check-circle text-success"></i>
+                        Interfaz optimizada para usuarios CONAUTOPCI&Oacute;N
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fa fa-check-circle text-success"></i>
+                        Soporte dedicado para clientes CONAUTOPCI&Oacute;N
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Cargar datos específicos de CONAUTOPCI&Oacute;N
+        $.ajax({
+            url: '@Url.Action("GetFinaData", "Fina")',
+            type: 'POST',
+            success: function (response) {
+                if (response.success) {
+                    console.log('Datos de CONAUTOPCI&Oacute;N cargados:', response.data);
+                    // Aquí puedes agregar lógica adicional para mostrar datos específicos
+                }
+            },
+            error: function () {
+                console.log('Error al cargar datos de CONAUTOPCI&Oacute;N');
+            }
+        });
+    });
+</script>

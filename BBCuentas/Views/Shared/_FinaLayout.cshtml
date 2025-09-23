@@ -1,0 +1,111 @@
+@using BBCuentas.Models;
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title CONAUTOPCI&Oacute;N Portal</title>
+    <link href="~/Styles/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Styles/home.css" rel="stylesheet" type="text/css" />
+    <link href="~/Styles/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-3.0.0.min.js"></script>
+    <script src="~/Scripts/modernizr-2.6.2.js"></script>
+    <style>
+        /* Estilos específicos para Fina */
+        .navbar-brand-fina {
+            color: #fff !important;
+            font-weight: bold;
+        }
+
+        .fina-header {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+        }
+
+        .fina-card {
+            border-left: 4px solid #2a5298;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .fina-btn {
+            background-color: #2a5298;
+            border-color: #2a5298;
+        }
+
+            .fina-btn:hover {
+                background-color: #1e3c72;
+                border-color: #1e3c72;
+            }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fina-header fixed-top">
+        <div class="navbar-brand navbar-brand-fina">
+            <img src="~/Content/Images/logo_sofom2.jpg" alt="Fina Logo" style="height: 55px; width: auto; margin-right: 10px;" />
+            CONAUTOPCI&Oacute;N Portal
+        </div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsFinaDefault" aria-controls="navbarsFinaDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarsFinaDefault">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index", "Fina")">
+                        <i class="fa fa-home"></i>
+                        Inicio CONAUTOPCI&Oacute;N
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("AccountStatement", "Fina")">
+                        <i class="fa fa-file"></i>
+                        Estados de Cuenta CONAUTOPCI&Oacute;N
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Security", "Fina")">
+                        <i class="fa fa-lock"></i>
+                        Seguridad
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-user"></i>
+                        Usuario
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="@Url.Action("Index", "Home")">
+                            <i class="fa fa-exchange"></i>
+                            Cambiar a Portal Conauto
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="@Url.Action("LogOut", "Login")">
+                            <i class="fa fa-sign-out"></i>
+                            Cerrar Sesión
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main role="main" class="container" style="margin-top: 80px;">
+        <div class="alert alert-info" role="alert">
+            <i class="fa fa-info-circle"></i>
+            <strong>Portal CONAUTOPCI&Oacute;N:</strong> Est&aacute; accediendo al portal para clientes de CONAUTOPCI&Oacute;N.
+        </div>
+        @RenderBody()
+    </main>
+
+    <footer class="bg-light text-center text-lg-start mt-5">
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            © 2023 Portal CONAUTOPCI&Oacute;N - Estados de Cuenta
+        </div>
+    </footer>
+
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="~/Scripts/popper.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
