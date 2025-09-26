@@ -4,8 +4,9 @@
 <html lang="es">
 <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title CONAUTOPCI&Oacute;N Portal</title>
+    <title>@ViewBag.Title GC Conautopcion Portal</title>
     <link href="~/Styles/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="~/Styles/home.css" rel="stylesheet" type="text/css" />
     <link href="~/Styles/font-awesome.min.css" rel="stylesheet" />
@@ -42,7 +43,7 @@
     <nav class="navbar navbar-expand-md navbar-dark fina-header fixed-top">
         <div class="navbar-brand navbar-brand-fina">
             <img src="~/Content/Images/logo_sofom2.jpg" alt="Fina Logo" style="height: 55px; width: auto; margin-right: 10px;" />
-            CONAUTOPCI&Oacute;N Portal
+            GC Conautopcion Portal
         </div>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsFinaDefault" aria-controls="navbarsFinaDefault" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -52,13 +53,13 @@
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("Index", "Fina")">
                         <i class="fa fa-home"></i>
-                        Inicio CONAUTOPCI&Oacute;N
+                        Inicio GC Conautopcion
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("AccountStatement", "Fina")">
                         <i class="fa fa-file"></i>
-                        Estados de Cuenta CONAUTOPCI&Oacute;N
+                        Estados de Cuenta GC Conautopcion
                     </a>
                 </li>
                 <li class="nav-item">
@@ -74,17 +75,19 @@
                         <i class="fa fa-user"></i>
                         Usuario
                     </a>
-                    <div class="dropdown-menu" aria-labelledby="userDropdown">
-                        <a class="dropdown-item" href="@Url.Action("Index", "Home")">
-                            <i class="fa fa-exchange"></i>
-                            Cambiar a Portal Conauto
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="@Url.Action("LogOut", "Login")">
-                            <i class="fa fa-sign-out"></i>
-                            Cerrar Sesión
-                        </a>
-                    </div>
+                    <!--
+                     <div class="dropdown-menu" aria-labelledby="userDropdown">
+                       <a class="dropdown-item" href="@Url.Action("Index", "Home")">
+                        <i class="fa fa-exchange"></i>
+                        Cambiar a Portal Conauto
+                    </a>
+                    -->
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="@Url.Action("LogOut", "Login")">
+                        <i class="fa fa-sign-out"></i>
+                        Cerrar Sesi&oacute;n
+                    </a>
+</div>
                 </li>
             </ul>
         </div>
@@ -93,14 +96,14 @@
     <main role="main" class="container" style="margin-top: 80px;">
         <div class="alert alert-info" role="alert">
             <i class="fa fa-info-circle"></i>
-            <strong>Portal CONAUTOPCI&Oacute;N:</strong> Est&aacute; accediendo al portal para clientes de CONAUTOPCI&Oacute;N.
+            <strong>Portal GC Conautopcion:</strong> Est&aacute; accediendo al portal para clientes de GC Conautopcion.
         </div>
         @RenderBody()
     </main>
 
     <footer class="bg-light text-center text-lg-start mt-5">
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-            © 2023 Portal CONAUTOPCI&Oacute;N - Estados de Cuenta
+            &copy; 2023 Portal GC Conautopcion - Estados de Cuenta
         </div>
     </footer>
 

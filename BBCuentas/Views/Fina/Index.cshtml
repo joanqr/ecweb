@@ -1,6 +1,6 @@
 @{
     Layout = "~/Views/Shared/_FinaLayout.cshtml";
-    ViewBag.Title = "Portal CONAUTOPCI&Oacute;N";
+    ViewBag.Title = "Portal GC Conautopcion";
 }
 
 <div class="row">
@@ -8,13 +8,13 @@
         <div class="jumbotron fina-card">
             <h1 class="display-4">
                 <i class="fa fa-building text-primary"></i>
-                Bienvenido al Portal CONAUTOPCI&Oacute;N
+                Bienvenido al Portal GC Conautopcion
             </h1>
             <p class="lead">
                 Acceda a sus estados de cuenta y gestione su informaci&oacute;n de manera segura.
             </p>
             <hr class="my-4">
-            <p>Este portal est&aacute; dise&ntilde;ado espec&iacute;ficamente para clientes de CONAUTOPCI&Oacute;N con funcionalidades optimizadas.</p>
+            <p>Este portal est&aacute; dise&ntilde;ado espec&iacute;ficamente para clientes de GC Conautopcion con funcionalidades optimizadas.</p>
         </div>
     </div>
 </div>
@@ -41,7 +41,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="card-text">Consulte y descargue sus estados de cuenta de CONAUTOPCI&Oacute;N.</p>
+                <p class="card-text">Consulte y descargue sus estados de cuenta de GC Conautopcion.</p>
                 <a href="@Url.Action("AccountStatement", "Fina")" class="btn fina-btn text-white">
                     <i class="fa fa-arrow-right"></i>
                     Acceder a Estados de Cuenta
@@ -59,7 +59,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="card-text">Gestione la seguridad de su cuenta y cambie su contras&ntilde;a.</p>
+                <p class="card-text">Gestione la seguridad de su cuenta y cambie su contrase&ntilde;a.</p>
                 <a href="@Url.Action("Security", "Fina")" class="btn fina-btn text-white">
                     <i class="fa fa-arrow-right"></i>
                     Configuraci&oacute;n de Seguridad
@@ -69,6 +69,7 @@
     </div>
 </div>
 
+<!--
 <div class="row">
     <div class="col-md-12">
         <div class="card fina-card">
@@ -78,11 +79,12 @@
                     Informaci&oacute;n Importante
                 </h5>
             </div>
+
             <div class="card-body">
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <i class="fa fa-check-circle text-success"></i>
-                        Portal exclusivo para clientes de CONAUTOPCI&Oacute;N
+                        Portal exclusivo para clientes de GC Conautopcion
                     </li>
                     <li class="list-group-item">
                         <i class="fa fa-check-circle text-success"></i>
@@ -90,32 +92,33 @@
                     </li>
                     <li class="list-group-item">
                         <i class="fa fa-check-circle text-success"></i>
-                        Interfaz optimizada para usuarios CONAUTOPCI&Oacute;N
+                        Interfaz optimizada para usuarios GC Conautopcion
                     </li>
                     <li class="list-group-item">
                         <i class="fa fa-check-circle text-success"></i>
-                        Soporte dedicado para clientes CONAUTOPCI&Oacute;N
+                        Soporte dedicado para clientes GC Conautopcion
                     </li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+ -->
 
 <script>
     $(document).ready(function () {
-        // Cargar datos específicos de CONAUTOPCI&Oacute;N
+        // Cargar datos específicos de GC Conautopcion
         $.ajax({
             url: '@Url.Action("GetFinaData", "Fina")',
             type: 'POST',
             success: function (response) {
                 if (response.success) {
-                    console.log('Datos de CONAUTOPCI&Oacute;N cargados:', response.data);
+                    console.log('Datos de GC Conautopcion cargados:', response.data);
                     // Aquí puedes agregar lógica adicional para mostrar datos específicos
                 }
             },
             error: function () {
-                console.log('Error al cargar datos de CONAUTOPCI&Oacute;N');
+                console.log('Error al cargar datos de GC Conautopcion');
             }
         });
     });

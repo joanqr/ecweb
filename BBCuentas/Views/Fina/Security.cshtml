@@ -1,13 +1,13 @@
 @{
     Layout = "~/Views/Shared/_FinaLayout.cshtml";
-    ViewBag.Title = "Seguridad - CONAUTOPCI&Oacute;N";
+    ViewBag.Title = "Seguridad - GC Conautopcion";
 }
 
 <div class="row">
     <div class="col-md-12">
         <h2>
             <i class="fa fa-lock text-primary"></i>
-            Configuraci&oacute;n de Seguridad - Portal CONAUTOPCI&Oacute;N
+            Configuraci&oacute;n de Seguridad - Portal GC Conautopcion
         </h2>
         <hr>
     </div>
@@ -29,19 +29,19 @@
                         <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
                     </div>
                     <div class="form-group">
-                        <label for="newPassword">Nueva Contraseña:</label>
+                        <label for="newPassword">Nueva Contrase&ntilde;a:</label>
                         <input type="password" class="form-control" id="newPassword" name="newPassword" required>
                         <small class="form-text text-muted">
-                            La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y números.
+                            La contrase&ntilde;a debe tener al menos 8 caracteres, incluir may&uacute;sculas, min&uacute;sculas y n&uacute;meros.
                         </small>
                     </div>
                     <div class="form-group">
-                        <label for="confirmPassword">Confirmar Nueva Contraseña:</label>
+                        <label for="confirmPassword">Confirmar Nueva Contrase&ntilde;a:</label>
                         <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
                     </div>
                     <button type="submit" class="btn fina-btn text-white">
                         <i class="fa fa-save"></i>
-                        Cambiar Contraseña
+                        Cambiar Contrase&ntilde;a
                     </button>
                 </form>
             </div>
@@ -53,26 +53,26 @@
             <div class="card-header bg-info text-white">
                 <h5 class="card-title mb-0">
                     <i class="fa fa-shield"></i>
-                    Seguridad del Portal CONAUTOPCI&Oacute;N
+                    Seguridad del Portal GC Conautopcion
                 </h5>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled">
                     <li class="mb-2">
                         <i class="fa fa-check-circle text-success"></i>
-                        <small>Conexión segura SSL</small>
+                        <small>Conexi&oacute;n segura SSL</small>
                     </li>
                     <li class="mb-2">
                         <i class="fa fa-check-circle text-success"></i>
-                        <small>Cifrado de datos específico para CONAUTOPCI&Oacute;N</small>
+                        <small>Cifrado de datos espec&iacute;fico para GC Conautopcion</small>
                     </li>
                     <li class="mb-2">
                         <i class="fa fa-check-circle text-success"></i>
-                        <small>Autenticación robusta</small>
+                        <small>Autenticaci&oacute;n robusta</small>
                     </li>
                     <li class="mb-2">
                         <i class="fa fa-check-circle text-success"></i>
-                        <small>Monitoreo de accesos CONAUTOPCI&Oacute;N</small>
+                        <small>Monitoreo de accesos GC Conautopcion</small>
                     </li>
                 </ul>
             </div>
@@ -89,7 +89,7 @@
                 <ul class="list-unstyled">
                     <li class="mb-2">
                         <i class="fa fa-arrow-right text-primary"></i>
-                        <small>Cambie su contraseña regularmente</small>
+                        <small>Cambie su contrase&ntilde;a regularmente</small>
                     </li>
                     <li class="mb-2">
                         <i class="fa fa-arrow-right text-primary"></i>
@@ -97,7 +97,7 @@
                     </li>
                     <li class="mb-2">
                         <i class="fa fa-arrow-right text-primary"></i>
-                        <small>Cierre sesión al terminar</small>
+                        <small>Cierre sesi&oacute;n al terminar</small>
                     </li>
                     <li class="mb-2">
                         <i class="fa fa-arrow-right text-primary"></i>
@@ -176,7 +176,7 @@
                 return;
             }
 
-            // Aquí iría la llamada AJAX para cambiar la contraseña específicamente para usuarios de CONAUTOPCI&Oacute;N
+            // Aquí iría la llamada AJAX para cambiar la contraseña específicamente para usuarios de GC Conautopcion
             $.ajax({
                 url: '@Url.Action("updUsuario", "Security")', // Reutilizamos el endpoint existente
                 type: 'POST',
@@ -187,7 +187,7 @@
                 },
                 success: function (response) {
                     if (response === "Password actualizado") {
-                        showMessage('Contraseña actualizada exitosamente en el portal CONAUTOPCI&Oacute;N', 'success');
+                        showMessage('Contraseña actualizada exitosamente en el portal GC Conautopcion', 'success');
                         $('#finaPasswordForm')[0].reset();
                     } else {
                         showMessage('Error al actualizar contraseña: ' + response, 'danger');

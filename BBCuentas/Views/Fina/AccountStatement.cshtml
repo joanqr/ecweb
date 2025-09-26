@@ -1,13 +1,13 @@
 @{
     Layout = "~/Views/Shared/_FinaLayout.cshtml";
-    ViewBag.Title = "Estados de Cuenta - CONAUTOPCI&Oacute;N";
+    ViewBag.Title = "Estados de Cuenta - GC Conautopcion";
 }
 
 <div class="row">
     <div class="col-md-12">
         <h2>
             <i class="fa fa-file-text text-primary"></i>
-            Estados de Cuenta CONAUTOPCI&Oacute;N
+            Estados de Cuenta GC Conautopcion
         </h2>
         <hr>
     </div>
@@ -27,7 +27,7 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="finaContract">Seleccionar Contrato CONAUTOPCI&Oacute;N:</label>
+                                <label for="finaContract">Seleccionar Contrato GC Conautopcion:</label>
                                 <select class="form-control" id="finaContract" name="contract">
                                     <option value="">Seleccione un contrato...</option>
                                 </select>
@@ -35,9 +35,9 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label for="finaYear">A&ntilde;o :</label>
+                                <label for="finaYear">A&ntilde;o:</label>
                                 <select class="form-control" id="finaYear" name="year">
-                                    <option value="">Seleccione a&ntilde;o...</option>
+                                    <option value="">Seleccione año...</option>
                                 </select>
                             </div>
                         </div>
@@ -80,7 +80,7 @@
                         <thead class="thead-dark">
                             <tr>
                                 <th>Contrato</th>
-                                <th>Período</th>
+                                <th>Per&iacute;odo</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
@@ -99,13 +99,13 @@
         <div class="alert alert-info" role="alert">
             <h5>
                 <i class="fa fa-info-circle"></i>
-                Caracter&iacute;sticas Especiales de CONAUTOPCI&Oacute;N
+                Caracter&iacute;sticas Especiales de GC Conautopcion
             </h5>
             <ul class="mb-0">
-                <li>Estados de cuenta con formato especializado para CONAUTOPCI&Oacute;N</li>
-                <li>Acceso exclusivo a documentos de seguros CONAUTOPCI&Oacute;N</li>
-                <li>Procesamiento optimizado para contratos CONAUTOPCI&Oacute;N</li>
-                <li>Soporte técnico especializado para clientes CONAUTOPCI&Oacute;N</li>
+                <li>Estados de cuenta con formato especializado para GC Conautopcion</li>
+                <li>Acceso exclusivo a documentos de seguros GC Conautopcion</li>
+                <li>Procesamiento optimizado para contratos GC Conautopcion</li>
+                <li>Soporte t&eacute;cnico especializado para clientes GC Conautopcion</li>
             </ul>
         </div>
     </div>
@@ -118,7 +118,7 @@
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title" id="errorModalLabel">
                     <i class="fa fa-exclamation-triangle"></i>
-                    Informaci&oacute; Importante
+                    Informaci&oacute;n Importante
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -126,9 +126,9 @@
             </div>
             <div class="modal-body text-center">
                 <p>
-                    <strong>¡Lo sentimos  &iexcl;</strong><br />
+                    <strong>&iexcl; Lo sentimos !</strong><br />
                     Su estado de cuenta no se encuentra disponible, favor de<br />
-                    Comunicarse al&aacute;rea de Atenci&oacute;n a clientes al tel&eacute;fono<br />
+                    Comunicarse al &aacute;rea de Atenci&oacute;n a clientes al tel&eacute;fono<br />
                     <strong>55 53 50 28 60, opci&oacute;n 3</strong> o Correo electr&oacute;nico<br />
                     <strong>atencion_clientes@autoopcion.com.mx</strong><br />
                     En un horario de atenci&oacute;n de lunes a viernes de 9:00 am a<br />
@@ -181,12 +181,12 @@
                             console.log('ContractNumber:', contract.ContractNumber);
 
                             contractSelect.append('<option value="' + contract.GrupoCliente + '">' +
-                                'Contrato: ' + contract.ContractNumber + ' - Grupo: ' + contract.GrupoCliente + ' (CONAUTOPCI&Oacute;N)</option>');
+                                'Contrato: ' + contract.ContractNumber + ' - Grupo: ' + contract.GrupoCliente + ' (GC Conautopcion)</option>');
                         });
                     }
                 },
                 error: function () {
-                    showMessage('Error al cargar contratos de CONAUTOPCI&Oacute;N', 'danger');
+                    showMessage('Error al cargar contratos de GC Conautopcion', 'danger');
                 }
             });
         }

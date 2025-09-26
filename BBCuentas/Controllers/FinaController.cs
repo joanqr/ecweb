@@ -41,7 +41,7 @@ namespace BBCuentas.Controllers
             // Verificar acceso a Fina
             if (!UsuarioTieneAccesoFina(idCliente))
             {
-                ViewData["Message"] = "Lo sentimos, no cuenta con contratos de Fina definidos";
+                ViewData["Message"] = "Lo sentimos, no cuenta con contratos de GC Conautopcion definidos";
                 return RedirectToAction("Index", new { parametro = ViewData["Message"] });
             }
 
