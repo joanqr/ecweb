@@ -33,11 +33,17 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <input type="button" value="Agregar Contrato" data-toggle="modal" data-target="#myModalContrato" class="btn btn-outline-success form-control" />
+                            </div>
+                        </div>
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="finaYear">A&ntilde;o:</label>
                                 <select class="form-control" id="finaYear" name="year">
-                                    <option value="">Seleccione año...</option>
+                                    <option value="">Seleccione a&ntilde;o...</option>
                                 </select>
                             </div>
                         </div>
@@ -145,6 +151,103 @@
     </div>
 </div>
 
+<!-- Modal para Agregar Contrato -->
+<div class="modal fade" id="myModalContrato">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <img src="~/Content/Images/logo_grupo.png" class="w-75" alt="Logo" /><br />
+                <button type="button" class="close" data-dismiss="modal"><span class="text-white">&times;</span></button>
+            </div>
+            <form action="" class="needs-validation" id="finaContractForm" name="finaContractRegistration">
+                <div class="modal-body">
+                    <p>Agregar Contrato</p>
+                    <p class="font-weight-bold" id="EtiquetaPantallaTipoFinanciamiento"></p>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group row">
+                                <div class="col-md-4 text-right">
+                                    <label for="finaGpCte">Grupo Cliente:</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="finaGpCte" name="finaGpCte" required>
+                                    <div class="valid-feedback">Valid.</div>
+                                    <div class="invalid-feedback">Please fill out this field.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="finaGpCte2" name="finaGpCte2" required>
+                                    <div class="valid-feedback">Valid.</div>
+                                    <div class="invalid-feedback">Please fill out this field.</div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4 text-right">
+                                    <label for="finaIdContrato"># Contrato:</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="finaIdContrato" name="finaIdContrato" required>
+                                    <div class="valid-feedback">Valid.</div>
+                                    <div class="invalid-feedback">Please fill out this field.</div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4 text-right">
+                                    <label for="finaIdCP">C&oacute;digo Postal:</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="finaIdCP" name="finaIdCP" required>
+                                    <div class="valid-feedback">Valid.</div>
+                                    <div class="invalid-feedback">Please fill out this field.</div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4 text-right">
+                                    <label for="finaDatepicker">Fecha Nacim.</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input id="finaDatepicker" width="276" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnAgregarFina" class="btn btn-success" data-dismiss="modal">Agregar</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para mensajes de error -->
+<div class="modal" id="MensajeError">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p class="alert alert-danger" role="alert"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para mensajes de éxito -->
+<div class="modal" id="MensajeOK">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p class="alert alert-success" role="alert"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         var availableMonths = [];
@@ -195,7 +298,7 @@
             var yearSelect = $('#finaYear');
             var currentYear = new Date().getFullYear();
 
-            yearSelect.empty().append('<option value="">Seleccione año...</option>');
+            yearSelect.empty().append('<option value="">Seleccione a&ntilde;o...</option>');
             yearSelect.append('<option value="' + currentYear + '">' + currentYear + '</option>');
 
             // Seleccionar automáticamente el año actual
@@ -309,49 +412,6 @@
                             } else {
                                 console.log('=== NO SE ENCONTRARON OBJETOS CON MES ===');
                             }
-
-                            console.log('=== PROCESAMIENTO ORIGINAL (PARA DEBUGGING) ===');
-                            console.log('Archivos recibidos:', archivosArray);
-                            console.log('Cantidad de archivos:', archivosArray.length);
-
-                            $.each(archivosArray, function (index, archivo) {
-                                console.log('Procesando archivo ' + index + ':', archivo);
-                                console.log('archivo es array:', Array.isArray(archivo));
-                                console.log('archivo length si es array:', Array.isArray(archivo) ? archivo.length : 'N/A');
-
-                                // Función recursiva para extraer el objeto final desde arrays anidados
-                                function extraerObjeto(item) {
-                                    console.log('Extrayendo de:', item);
-                                    console.log('Es array:', Array.isArray(item));
-                                    console.log('Length:', Array.isArray(item) ? item.length : 'N/A');
-
-                                    if (Array.isArray(item)) {
-                                        if (item.length === 0) {
-                                            console.log('Array vacío, retornando null');
-                                            return null;
-                                        }
-                                        console.log('Recursando con item[0]:', item[0]);
-                                        return extraerObjeto(item[0]);
-                                    } else {
-                                        console.log('Objeto final encontrado:', item);
-                                        return item;
-                                    }
-                                }
-
-                                var archivoObj = extraerObjeto(archivo);
-
-                                console.log('archivoObj final:', archivoObj);
-                                console.log('archivoObj.mes:', archivoObj ? archivoObj.mes : 'N/A');
-
-                                if (archivoObj && archivoObj.mes) {
-                                    var monthName = archivoObj.mes.charAt(0).toUpperCase() + archivoObj.mes.slice(1);
-                                    monthSelect.append('<option value="' + archivoObj.mes + '">' + monthName + '</option>');
-                                    console.log('Mes agregado:', archivoObj.mes, '->', monthName);
-                                } else {
-                                    console.log('ERROR: archivoObj es null o no tiene mes');
-                                    console.log('archivoObj:', archivoObj);
-                                }
-                            });
 
                             console.log('=== FIN PROCESAMIENTO MESES ===');
                             console.log('Options en monthSelect después del procesamiento:', monthSelect.find('option').length);
@@ -510,5 +570,55 @@
             // Agregar nueva alerta al principio del contenido
             $(alertHtml).prependTo('.container');
         }
+
+        // Inicializar datepicker para el modal de Fina
+        $(document).ready(function() {
+            // Inicializar datepicker cuando se abre el modal
+            $('#myModalContrato').on('shown.bs.modal', function () {
+                if (!$('#finaDatepicker').data('datepicker')) {
+                    $('#finaDatepicker').datepicker({
+                        uiLibrary: 'bootstrap4',
+                        format: 'dd/mm/yyyy'
+                    });
+                }
+            });
+
+            // Manejar el botón Agregar del modal
+            $('#btnAgregarFina').on('click', function() {
+                var grupocliente1 = $('#finaGpCte').val();
+                var grupocliente2 = $('#finaGpCte2').val();
+                var contrato = $('#finaIdContrato').val();
+                var codigoPostal = $('#finaIdCP').val();
+                var fechaNacimiento = $('#finaDatepicker').val();
+
+                // Validar campos obligatorios
+                if (!grupocliente1 || !grupocliente2 || !contrato || !codigoPostal || !fechaNacimiento) {
+                    showModalMessage('Todos los campos son obligatorios', 'error');
+                    return;
+                }
+
+                // Aquí se puede agregar la lógica para enviar los datos al servidor
+                // Por ahora, simplemente mostrar un mensaje de éxito
+                showModalMessage('Contrato agregado exitosamente', 'success');
+
+                // Limpiar el formulario
+                $('#finaContractForm')[0].reset();
+
+                // Recargar la lista de contratos
+                loadFinaContracts();
+            });
+        });
+
+        function showModalMessage(message, type) {
+            if (type === 'error') {
+                $('#MensajeError .alert').text(message);
+                $('#MensajeError').modal('show');
+            } else if (type === 'success') {
+                $('#MensajeOK .alert').text(message);
+                $('#MensajeOK').modal('show');
+            }
+        }
     </script>
+    <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
+    <link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />
 }
