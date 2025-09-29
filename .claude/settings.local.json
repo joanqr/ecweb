@@ -4,7 +4,8 @@
       "Bash(msbuild:*)",
       "Read(//c/Desarrollo/Repo/ApiConsumer/**)",
       "Bash(dotnet build:*)",
-      "Bash(csc:*)"
+      "Bash(csc:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
