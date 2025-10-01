@@ -5,7 +5,9 @@
       "Read(//c/Desarrollo/Repo/ApiConsumer/**)",
       "Bash(dotnet build:*)",
       "Bash(csc:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(//c/Desarrollo/Repo/EdoCuentaWeb/**)",
+      "Bash(where MSBuild)"
     ],
     "deny": [],
     "ask": []

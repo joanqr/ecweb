@@ -1,9 +1,12 @@
 using BusinessLayer;
 using ModelLayer;
 using BBCuentas.Models;
+using r3Take.DataAccessLayer;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -582,6 +585,144 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
         {
             public string mes { get; set; }
             public string Archivo { get; set; }
+        }
+
+        [HttpPost]
+        public JsonResult InsertFinaContract(Usuario usuario)
+        {
+            usuario.cEMail = Request.Cookies["Nombre"].Value.ToString();
+            usuario.TipoFina = 1; // Establecer TipoFina para Fina
+            bool succes = false;
+            Contract contract = new Contract();
+            string empresa = "Fina";
+
+            try
+            {
+                var mensajeResp = "";
+                DAL dal = new DAL();
+                Hashtable hashTableParameters = new Hashtable();
+
+                DataTable dtExixteContrato;
+                int idCliente = Convert.ToInt32(Request.Cookies["Usuario"].Value.ToString());
+
+                System.Diagnostics.Debug.WriteLine("=== VALIDANDO CONTRATO EXISTENTE ===");
+                System.Diagnostics.Debug.WriteLine($"Contrato a validar: {usuario.iContrato}");
+                System.Diagnostics.Debug.WriteLine($"Usuario: {idCliente}");
+
+                if (usuario.iContrato > 0)
+                {
+                    // Usar el mismo patrón que funciona en AccountStatementController
+                    // Primero verificar si el contrato existe en general
+                    hashTableParameters.Add("contrato", usuario.iContrato);
+                    dtExixteContrato = dal.QueryDT("DS_ECWEB",
+                        "SELECT idUsuario FROM [dbo].[Contratos] WHERE iContrato = @0",
+                        "H:S:contrato", hashTableParameters, System.Web.HttpContext.Current);
+
+                    System.Diagnostics.Debug.WriteLine($"Total de registros encontrados para el contrato {usuario.iContrato}: {dtExixteContrato.Rows.Count}");
+
+                    // Si existe el contrato, verificar si es para este usuario específico
+                    if (dtExixteContrato.Rows.Count > 0)
+                    {
+                        // Verificar si alguno de los registros pertenece a este usuario
+                        bool contratoExisteParaEsteUsuario = false;
+                        foreach (DataRow row in dtExixteContrato.Rows)
+                        {
+                            int usuarioExistente = Convert.ToInt32(row["idUsuario"]);
+                            System.Diagnostics.Debug.WriteLine($"Usuario encontrado: {usuarioExistente}, Usuario actual: {idCliente}");
+                            if (usuarioExistente == idCliente)
+                            {
+                                contratoExisteParaEsteUsuario = true;
+                                break;
+                            }
+                        }
+
+                        System.Diagnostics.Debug.WriteLine($"¿Contrato existe para este usuario?: {contratoExisteParaEsteUsuario}");
+
+                        if (contratoExisteParaEsteUsuario)
+                        {
+                            System.Diagnostics.Debug.WriteLine("=== CONTRATO YA EXISTE PARA ESTE USUARIO ===");
+                            succes = false;
+                            return Json(new { result = succes, mensaje = $"El contrato {usuario.iContrato} ya está registrado para este usuario", contract = new Contract() });
+                        }
+                    }
+
+                    System.Diagnostics.Debug.WriteLine("=== CONTRATO NO EXISTE PARA ESTE USUARIO, PROCEDIENDO A INSERTAR ===");
+
+                    // Proceder con la inserción
+                    usuario.idUsuario = idCliente;
+
+                        // Debug: Log datos antes de insertar
+                        System.Diagnostics.Debug.WriteLine("=== INSERTANDO CONTRATO EN BD ===");
+                        System.Diagnostics.Debug.WriteLine($"idUsuario: {usuario.idUsuario}");
+                        System.Diagnostics.Debug.WriteLine($"TipoFina: {usuario.TipoFina}");
+                        System.Diagnostics.Debug.WriteLine($"gpoCte1: {usuario.gpoCte1}");
+                        System.Diagnostics.Debug.WriteLine($"gpoCte2: {usuario.gpoCte2}");
+                        System.Diagnostics.Debug.WriteLine($"iContrato: {usuario.iContrato}");
+                        System.Diagnostics.Debug.WriteLine($"CP: {usuario.CP}");
+                        System.Diagnostics.Debug.WriteLine($"DateCte: {usuario.DateCte}");
+                        System.Diagnostics.Debug.WriteLine($"cEMail: {usuario.cEMail}");
+
+                        bool insertResult = usuarioValid.InsertContract(usuario);
+                        System.Diagnostics.Debug.WriteLine($"Resultado inserción: {insertResult}");
+
+                        empresa = contrato.ObtieneEmpresPorId(usuario.TipoFina);
+                        System.Diagnostics.Debug.WriteLine($"Empresa obtenida: {empresa}");
+
+                        string grupoClienteConcatenado = Convert.ToString(usuario.gpoCte1) + Convert.ToString(usuario.gpoCte2);
+                        contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), grupoClienteConcatenado);
+
+                        System.Diagnostics.Debug.WriteLine($"Contract creado - Empresa: {contract.Empresa}, ContractNumber: {contract.ContractNumber}, GrupoCliente: {contract.GrupoCliente}");
+                        System.Diagnostics.Debug.WriteLine("=== FIN INSERCIÓN BD ===");
+
+                        if (insertResult)
+                        {
+                            // Verificar que efectivamente se insertó
+                            Hashtable verifyParams = new Hashtable();
+                            verifyParams.Add("contrato", usuario.iContrato);
+                            verifyParams.Add("usuario", usuario.idUsuario);
+
+                            DataTable dtVerify = dal.QueryDT("DS_ECWEB",
+                                "SELECT iContrato, idUsuario, iGrupo, iCliente, iCompania FROM [dbo].[Contratos] WHERE iContrato = @0 AND idUsuario = @1",
+                                "H:S:contrato;H:S:usuario", verifyParams, System.Web.HttpContext.Current);
+
+                            if (dtVerify.Rows.Count > 0)
+                            {
+                                System.Diagnostics.Debug.WriteLine("=== VERIFICACIÓN BD ===");
+                                System.Diagnostics.Debug.WriteLine($"Contrato verificado en BD: {dtVerify.Rows[0]["iContrato"]}");
+                                System.Diagnostics.Debug.WriteLine($"Usuario: {dtVerify.Rows[0]["idUsuario"]}");
+                                System.Diagnostics.Debug.WriteLine($"iGrupo: {dtVerify.Rows[0]["iGrupo"]}");
+                                System.Diagnostics.Debug.WriteLine($"iCliente: {dtVerify.Rows[0]["iCliente"]}");
+                                System.Diagnostics.Debug.WriteLine($"iCompania: {dtVerify.Rows[0]["iCompania"]}");
+                                System.Diagnostics.Debug.WriteLine("=== FIN VERIFICACIÓN BD ===");
+
+                                succes = true;
+                                return Json(new {
+                                    result = succes,
+                                    mensaje = "Se guardó contrato de Fina correctamente en la base de datos SQL",
+                                    contract = contract,
+                                    dbVerified = true
+                                });
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine("ERROR: No se pudo verificar el contrato en la BD");
+                                return Json(new { result = false, mensaje = "Error: No se pudo verificar la inserción en la base de datos", contract = contract });
+                            }
+                        }
+                        else
+                        {
+                            return Json(new { result = false, mensaje = "Error al guardar contrato en la base de datos", contract = contract });
+                        }
+                }
+                else
+                {
+                    return Json(new { result = succes, mensaje = "Número de contrato inválido", contract = contract });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { result = false, mensaje = "Error al agregar contrato: " + ex.Message, contract = contract });
+            }
         }
 
         private class ApiResult

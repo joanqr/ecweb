@@ -167,15 +167,15 @@
                         <div class="col-md-12">
                             <div class="form-group row">
                                 <div class="col-md-4 text-right">
-                                    <label for="finaGpCte">Grupo Cliente:</label>
+                                    <label for="finaGpCte">Grupo Cliente (opcional):</label>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="finaGpCte" name="finaGpCte" required>
+                                    <input type="text" class="form-control" id="finaGpCte" name="finaGpCte" placeholder="Grupo (opcional)">
                                     <div class="valid-feedback">Valid.</div>
                                     <div class="invalid-feedback">Please fill out this field.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="finaGpCte2" name="finaGpCte2" required>
+                                    <input type="text" class="form-control" id="finaGpCte2" name="finaGpCte2" placeholder="Cliente (opcional)">
                                     <div class="valid-feedback">Valid.</div>
                                     <div class="invalid-feedback">Please fill out this field.</div>
                                 </div>
@@ -585,38 +585,183 @@
 
             // Manejar el botón Agregar del modal
             $('#btnAgregarFina').on('click', function() {
-                var grupocliente1 = $('#finaGpCte').val();
-                var grupocliente2 = $('#finaGpCte2').val();
-                var contrato = $('#finaIdContrato').val();
+                // Verificar que los elementos existan
+                console.log('=== VERIFICANDO ELEMENTOS ===');
+                console.log('finaGpCte element exists:', $('#finaGpCte').length > 0);
+                console.log('finaGpCte2 element exists:', $('#finaGpCte2').length > 0);
+                console.log('finaIdContrato element exists:', $('#finaIdContrato').length > 0);
+                console.log('finaIdCP element exists:', $('#finaIdCP').length > 0);
+                console.log('finaDatepicker element exists:', $('#finaDatepicker').length > 0);
+
+                var grupocliente1Raw = $('#finaGpCte').val();
+                var grupocliente2Raw = $('#finaGpCte2').val();
+                var contratoOriginal = $('#finaIdContrato').val();
                 var codigoPostal = $('#finaIdCP').val();
                 var fechaNacimiento = $('#finaDatepicker').val();
 
-                // Validar campos obligatorios
-                if (!grupocliente1 || !grupocliente2 || !contrato || !codigoPostal || !fechaNacimiento) {
-                    showModalMessage('Todos los campos son obligatorios', 'error');
+                // Procesar grupos cliente: si están vacíos, usar "0"
+                var grupocliente1 = grupocliente1Raw && grupocliente1Raw.trim() !== '' ? grupocliente1Raw.trim() : '0';
+                var grupocliente2 = grupocliente2Raw && grupocliente2Raw.trim() !== '' ? grupocliente2Raw.trim() : '0';
+
+                // Debugging adicional de valores raw y procesados
+                console.log('=== VALORES RAW ===');
+                console.log('finaGpCte raw value:', grupocliente1Raw);
+                console.log('finaGpCte2 raw value:', grupocliente2Raw);
+                console.log('finaIdContrato raw value:', contratoOriginal);
+                console.log('finaIdCP raw value:', codigoPostal);
+                console.log('finaDatepicker raw value:', fechaNacimiento);
+
+                console.log('=== DEBUGGING AGREGAR CONTRATO ===');
+                console.log('grupocliente1 (raw):', grupocliente1Raw);
+                console.log('grupocliente1 (procesado):', grupocliente1);
+                console.log('grupocliente2 (raw):', grupocliente2Raw);
+                console.log('grupocliente2 (procesado):', grupocliente2);
+                console.log('contratoOriginal:', contratoOriginal);
+                console.log('codigoPostal:', codigoPostal);
+                console.log('fechaNacimiento:', fechaNacimiento);
+
+                // Validar campos obligatorios (solo contrato, CP y fecha son obligatorios)
+                if (!contratoOriginal || !codigoPostal || !fechaNacimiento) {
+                    console.log('ERROR: Faltan campos obligatorios');
+                    console.log('contratoOriginal vacío:', !contratoOriginal);
+                    console.log('codigoPostal vacío:', !codigoPostal);
+                    console.log('fechaNacimiento vacío:', !fechaNacimiento);
+                    showModalMessage('Los campos Contrato, Código Postal y Fecha de Nacimiento son obligatorios', 'error');
                     return;
                 }
 
-                // Aquí se puede agregar la lógica para enviar los datos al servidor
-                // Por ahora, simplemente mostrar un mensaje de éxito
-                showModalMessage('Contrato agregado exitosamente', 'success');
+                // Procesar el número de contrato: si termina con "CS", solo enviar la parte numérica
+                var contratoParaEnvio = contratoOriginal.trim();
+                var contratoParaMostrar = contratoOriginal.trim();
 
-                // Limpiar el formulario
-                $('#finaContractForm')[0].reset();
+                if (contratoParaEnvio.toUpperCase().endsWith('CS')) {
+                    contratoParaEnvio = contratoParaEnvio.substring(0, contratoParaEnvio.length - 2);
+                    console.log('Contrato procesado: ' + contratoOriginal + ' -> ' + contratoParaEnvio + ' (para envío)');
+                }
 
-                // Recargar la lista de contratos
-                loadFinaContracts();
+                // Formatear fecha para el servidor (MM/dd/yyyy)
+                var fechaTokens = fechaNacimiento.split("/");
+                var fechaFormateada = fechaTokens[1] + "/" + fechaTokens[0] + "/" + fechaTokens[2];
+
+                console.log('Fecha original:', fechaNacimiento);
+                console.log('Fecha formateada:', fechaFormateada);
+
+                // Preparar datos para enviar
+                var dataToSend = {
+                    TipoFina: 1,
+                    gpoCte1: grupocliente1,
+                    gpoCte2: grupocliente2,
+                    iContrato: parseInt(contratoParaEnvio),
+                    CP: codigoPostal,
+                    DateCte: fechaFormateada
+                };
+
+                console.log('=== DATOS ENVIADOS AL SERVIDOR ===');
+                console.log('URL:', '@Url.Action("InsertFinaContract", "Fina")');
+                console.log('Datos como objeto:', dataToSend);
+                console.log('Datos como JSON:', JSON.stringify(dataToSend));
+                console.log('=== FIN DATOS ENVIADOS ===');
+
+                // Enviar datos al servidor
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    type: "POST",
+                    url: "@Url.Action("InsertFinaContract", "Fina")",
+                    data: JSON.stringify(dataToSend),
+                    beforeSend: function() {
+                        console.log('=== ENVIANDO PETICIÓN AL SERVIDOR ===');
+                    },
+                    success: function (data) {
+                        console.log('=== RESPUESTA DEL SERVIDOR ===');
+                        console.log('Respuesta completa:', data);
+                        console.log('data.result:', data.result);
+                        console.log('data.mensaje:', data.mensaje);
+                        console.log('data.contract:', data.contract);
+                        console.log('data.dbVerified:', data.dbVerified);
+                        console.log('Tipo de data.result:', typeof data.result);
+                        console.log('=== FIN RESPUESTA SERVIDOR ===');
+
+                        if (data.result) {
+                            console.log('=== CONTRATO AGREGADO EXITOSAMENTE ===');
+                            console.log('Contract object from server:', data.contract);
+                            console.log('Mensaje del servidor:', data.mensaje);
+                            console.log('Contrato guardado en base de datos SQL: ✓');
+                            console.log('Verificación en BD:', data.dbVerified ? '✓ CONFIRMADO' : '⚠ NO VERIFICADO');
+
+                            // Usar los datos que regresa el servidor
+                            var contractFromServer = data.contract;
+
+                            // Mostrar el contrato con CS si lo tenía originalmente
+                            var displayContractNumber = contratoParaMostrar.toUpperCase().endsWith('CS')
+                                ? contratoParaMostrar.toUpperCase()
+                                : contratoParaMostrar;
+
+                            // Usar el grupo cliente que regresa el servidor
+                            var serverGrupoCliente = contractFromServer.GrupoCliente || '';
+                            var serverContractNumber = contractFromServer.ContractNumber || displayContractNumber;
+                            var serverEmpresa = contractFromServer.Empresa || 'Fina';
+
+                            // Crear el texto y valor para la opción
+                            var optionText = 'Contrato: ' + displayContractNumber + ' - Grupo: ' + serverGrupoCliente + ' (GC Conautopcion)';
+                            var optionValue = serverGrupoCliente;
+
+                            console.log('Datos del servidor para la opción:');
+                            console.log('Server Contract Number:', serverContractNumber);
+                            console.log('Server Grupo Cliente:', serverGrupoCliente);
+                            console.log('Server Empresa:', serverEmpresa);
+                            console.log('Display Contract Number:', displayContractNumber);
+                            console.log('Option Value:', optionValue);
+                            console.log('Option Text:', optionText);
+
+                            $('#finaContract').append('<option value="' + optionValue + '">' + optionText + '</option>');
+
+                            showModalMessage(data.mensaje, 'success');
+
+                            // Limpiar el formulario
+                            $('#finaContractForm')[0].reset();
+                        } else {
+                            console.log('=== ERROR AL AGREGAR CONTRATO ===');
+                            console.log('Mensaje de error:', data.mensaje);
+                            showModalMessage(data.mensaje, 'error');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.log('=== ERROR AJAX ===');
+                        console.log('Status:', status);
+                        console.log('Error:', error);
+                        console.log('ResponseText:', xhr.responseText);
+                        console.log('StatusCode:', xhr.status);
+                        console.log('=== FIN ERROR AJAX ===');
+
+                        showModalMessage('Error del servidor: ' + error + ' (Status: ' + xhr.status + ')', 'error');
+                    }
+                });
             });
         });
 
         function showModalMessage(message, type) {
+            console.log('=== SHOW MODAL MESSAGE ===');
+            console.log('Message:', message);
+            console.log('Type:', type);
+
             if (type === 'error') {
-                $('#MensajeError .alert').text(message);
+                console.log('Mostrando modal de error');
+                var errorElement = $('#MensajeError .modal-body p');
+                console.log('Elemento encontrado:', errorElement.length > 0);
+                errorElement.text(message);
                 $('#MensajeError').modal('show');
+                console.log('Modal de error mostrado');
             } else if (type === 'success') {
-                $('#MensajeOK .alert').text(message);
+                console.log('Mostrando modal de éxito');
+                var successElement = $('#MensajeOK .modal-body p');
+                console.log('Elemento encontrado:', successElement.length > 0);
+                successElement.text(message);
                 $('#MensajeOK').modal('show');
+                console.log('Modal de éxito mostrado');
+            } else {
+                console.log('Tipo de mensaje no reconocido:', type);
             }
+            console.log('=== FIN SHOW MODAL MESSAGE ===');
         }
     </script>
     <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
