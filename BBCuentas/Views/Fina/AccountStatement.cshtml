@@ -167,15 +167,15 @@
                         <div class="col-md-12">
                             <div class="form-group row">
                                 <div class="col-md-4 text-right">
-                                    <label for="finaGpCte">Grupo Cliente (opcional):</label>
+                                    <label for="finaGpCte">Grupo Cliente :</label>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="finaGpCte" name="finaGpCte" placeholder="Grupo (opcional)">
+                                    <input type="text" class="form-control" id="finaGpCte" name="finaGpCte" placeholder="Grupo">
                                     <div class="valid-feedback">Valid.</div>
                                     <div class="invalid-feedback">Please fill out this field.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="finaGpCte2" name="finaGpCte2" placeholder="Cliente (opcional)">
+                                    <input type="text" class="form-control" id="finaGpCte2" name="finaGpCte2" placeholder="Cliente">
                                     <div class="valid-feedback">Valid.</div>
                                     <div class="invalid-feedback">Please fill out this field.</div>
                                 </div>
@@ -282,9 +282,24 @@
                             console.log('Cargando contrato:', contract);
                             console.log('GrupoCliente:', contract.GrupoCliente);
                             console.log('ContractNumber:', contract.ContractNumber);
+                            console.log('Empresa:', contract.Empresa);
+
+                            // Determinar si debe mostrar CS: longitud 5 caracteres y empresa Fina (1 o "Fina")
+                            var contractNumber = contract.ContractNumber.toString();
+                            var isFinaCompany = contract.Empresa === 'Fina' || contract.Empresa === 1 || contract.Empresa === '1';
+                            var shouldAddCS = contractNumber.length === 5 && isFinaCompany;
+
+                            // Formatear el número de contrato para mostrar
+                            var displayContractNumber = shouldAddCS ? contractNumber + 'CS' : contractNumber;
+
+                            console.log('Contract length:', contractNumber.length);
+                            console.log('Company:', contract.Empresa);
+                            console.log('Is Fina company:', isFinaCompany);
+                            console.log('Should add CS:', shouldAddCS);
+                            console.log('Display contract number:', displayContractNumber);
 
                             contractSelect.append('<option value="' + contract.GrupoCliente + '">' +
-                                'Contrato: ' + contract.ContractNumber + ' - Grupo: ' + contract.GrupoCliente + ' (GC Conautopcion)</option>');
+                                'Contrato: ' + displayContractNumber + ' - Grupo: ' + contract.GrupoCliente + ' (GC Conautopcion)</option>');
                         });
                     }
                 },
@@ -599,9 +614,12 @@
                 var codigoPostal = $('#finaIdCP').val();
                 var fechaNacimiento = $('#finaDatepicker').val();
 
-                // Procesar grupos cliente: si están vacíos, usar "0"
+                // Procesar grupos cliente: son opcionales, enviar 0 si están vacíos
                 var grupocliente1 = grupocliente1Raw && grupocliente1Raw.trim() !== '' ? grupocliente1Raw.trim() : '0';
                 var grupocliente2 = grupocliente2Raw && grupocliente2Raw.trim() !== '' ? grupocliente2Raw.trim() : '0';
+
+                // Los campos son opcionales
+                var tieneGrupoCliente = (grupocliente1 !== '0' || grupocliente2 !== '0');
 
                 // Debugging adicional de valores raw y procesados
                 console.log('=== VALORES RAW ===');
@@ -616,9 +634,11 @@
                 console.log('grupocliente1 (procesado):', grupocliente1);
                 console.log('grupocliente2 (raw):', grupocliente2Raw);
                 console.log('grupocliente2 (procesado):', grupocliente2);
+                console.log('tieneGrupoCliente:', tieneGrupoCliente);
                 console.log('contratoOriginal:', contratoOriginal);
                 console.log('codigoPostal:', codigoPostal);
                 console.log('fechaNacimiento:', fechaNacimiento);
+                console.log('Concatenación grupo+cliente:', grupocliente1 + grupocliente2);
 
                 // Validar campos obligatorios (solo contrato, CP y fecha son obligatorios)
                 if (!contratoOriginal || !codigoPostal || !fechaNacimiento) {

@@ -655,12 +655,22 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                         System.Diagnostics.Debug.WriteLine("=== INSERTANDO CONTRATO EN BD ===");
                         System.Diagnostics.Debug.WriteLine($"idUsuario: {usuario.idUsuario}");
                         System.Diagnostics.Debug.WriteLine($"TipoFina: {usuario.TipoFina}");
-                        System.Diagnostics.Debug.WriteLine($"gpoCte1: {usuario.gpoCte1}");
-                        System.Diagnostics.Debug.WriteLine($"gpoCte2: {usuario.gpoCte2}");
+                        System.Diagnostics.Debug.WriteLine($"gpoCte1 (raw): '{usuario.gpoCte1}'");
+                        System.Diagnostics.Debug.WriteLine($"gpoCte2 (raw): '{usuario.gpoCte2}'");
+                        System.Diagnostics.Debug.WriteLine($"gpoCte1 type: {usuario.gpoCte1.GetType().Name}");
+                        System.Diagnostics.Debug.WriteLine($"gpoCte2 type: {usuario.gpoCte2.GetType().Name}");
                         System.Diagnostics.Debug.WriteLine($"iContrato: {usuario.iContrato}");
                         System.Diagnostics.Debug.WriteLine($"CP: {usuario.CP}");
                         System.Diagnostics.Debug.WriteLine($"DateCte: {usuario.DateCte}");
                         System.Diagnostics.Debug.WriteLine($"cEMail: {usuario.cEMail}");
+
+                        // Los campos ya son int, usar directamente (pueden ser 0 si estaban vacíos)
+                        int iGrupo = usuario.gpoCte1;
+                        int iCliente = usuario.gpoCte2;
+
+                        System.Diagnostics.Debug.WriteLine($"iGrupo calculado: {iGrupo}");
+                        System.Diagnostics.Debug.WriteLine($"iCliente calculado: {iCliente}");
+                        System.Diagnostics.Debug.WriteLine($"Concatenación para display: {iGrupo}{iCliente:000}");
 
                         bool insertResult = usuarioValid.InsertContract(usuario);
                         System.Diagnostics.Debug.WriteLine($"Resultado inserción: {insertResult}");
@@ -668,37 +678,49 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                         empresa = contrato.ObtieneEmpresPorId(usuario.TipoFina);
                         System.Diagnostics.Debug.WriteLine($"Empresa obtenida: {empresa}");
 
-                        string grupoClienteConcatenado = Convert.ToString(usuario.gpoCte1) + Convert.ToString(usuario.gpoCte2);
-                        contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), grupoClienteConcatenado);
+                        // Crear el Contract object que automáticamente calculará la concatenación
+                        contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), Convert.ToString(usuario.gpoCte1) + Convert.ToString(usuario.gpoCte2));
+
+                        // Después de crear el contrato, obtener la concatenación real del webservice
+                        // mediante la consulta a la BD que usa el mismo formato que Contrato_Repository
+                        System.Diagnostics.Debug.WriteLine($"Contract creado inicialmente - GrupoCliente: {contract.GrupoCliente}");
 
                         System.Diagnostics.Debug.WriteLine($"Contract creado - Empresa: {contract.Empresa}, ContractNumber: {contract.ContractNumber}, GrupoCliente: {contract.GrupoCliente}");
                         System.Diagnostics.Debug.WriteLine("=== FIN INSERCIÓN BD ===");
 
                         if (insertResult)
                         {
-                            // Verificar que efectivamente se insertó
+                            // Verificar y obtener la concatenación real de la BD usando la misma lógica que Contrato_Repository
                             Hashtable verifyParams = new Hashtable();
                             verifyParams.Add("contrato", usuario.iContrato);
                             verifyParams.Add("usuario", usuario.idUsuario);
 
                             DataTable dtVerify = dal.QueryDT("DS_ECWEB",
-                                "SELECT iContrato, idUsuario, iGrupo, iCliente, iCompania FROM [dbo].[Contratos] WHERE iContrato = @0 AND idUsuario = @1",
+                                "SELECT iContrato, idUsuario, iGrupo, iCliente, iCompania, " +
+                                "CONVERT(varchar(20), iGrupo) + RIGHT('00000000' + CONVERT(varchar(20), iCliente),3) AS grupocliente " +
+                                "FROM [dbo].[Contratos] WHERE iContrato = @0 AND idUsuario = @1",
                                 "H:S:contrato;H:S:usuario", verifyParams, System.Web.HttpContext.Current);
 
                             if (dtVerify.Rows.Count > 0)
                             {
+                                var grupoClienteReal = dtVerify.Rows[0]["grupocliente"].ToString();
+
                                 System.Diagnostics.Debug.WriteLine("=== VERIFICACIÓN BD ===");
                                 System.Diagnostics.Debug.WriteLine($"Contrato verificado en BD: {dtVerify.Rows[0]["iContrato"]}");
                                 System.Diagnostics.Debug.WriteLine($"Usuario: {dtVerify.Rows[0]["idUsuario"]}");
                                 System.Diagnostics.Debug.WriteLine($"iGrupo: {dtVerify.Rows[0]["iGrupo"]}");
                                 System.Diagnostics.Debug.WriteLine($"iCliente: {dtVerify.Rows[0]["iCliente"]}");
                                 System.Diagnostics.Debug.WriteLine($"iCompania: {dtVerify.Rows[0]["iCompania"]}");
+                                System.Diagnostics.Debug.WriteLine($"grupocliente concatenado (BD): {grupoClienteReal}");
                                 System.Diagnostics.Debug.WriteLine("=== FIN VERIFICACIÓN BD ===");
+
+                                // Actualizar el contract con la concatenación real de la BD
+                                contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), grupoClienteReal);
 
                                 succes = true;
                                 return Json(new {
                                     result = succes,
-                                    mensaje = "Se guardó contrato de Fina correctamente en la base de datos SQL",
+                                    mensaje = "Se guardó correctamente la información",
                                     contract = contract,
                                     dbVerified = true
                                 });

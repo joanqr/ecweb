@@ -381,7 +381,31 @@ namespace BBCuentas.Controllers
                 request.ipcSegundoap = usuario.cSegundoApellido;
                 request.ipiCp = usuario.CP;
                 request.ipcFecha = usuario.DateCte.ToString("yyyy-MM-dd");
+
+                // Debug: Log input parameters for wsValidaEmpresa.wsEcweb
+                System.Diagnostics.Debug.WriteLine("=== wsValidaEmpresa.wsEcweb INPUT PARAMETERS ===");
+                System.Diagnostics.Debug.WriteLine($"ipiContrato: {request.ipiContrato}");
+                System.Diagnostics.Debug.WriteLine($"ipiGrupo: {request.ipiGrupo}");
+                System.Diagnostics.Debug.WriteLine($"ipiCliente: {request.ipiCliente}");
+                System.Diagnostics.Debug.WriteLine($"ipcNombre: '{request.ipcNombre}'");
+                System.Diagnostics.Debug.WriteLine($"ipcPrimerap: '{request.ipcPrimerap}'");
+                System.Diagnostics.Debug.WriteLine($"ipcSegundoap: '{request.ipcSegundoap}'");
+                System.Diagnostics.Debug.WriteLine($"ipiCp: {request.ipiCp}");
+                System.Diagnostics.Debug.WriteLine($"ipcFecha: '{request.ipcFecha}'");
+
                 wsValidaEmpresa.wsEcweb(request.ipiContrato, request.ipiGrupo, request.ipiCliente, request.ipcNombre, request.ipcPrimerap, request.ipcSegundoap, request.ipiCp, request.ipcFecha,  out opiCodigo, out opcMensaje, out opilContrato, out opilEmpresa, out opiGrupo, out opiCliente);
+
+                // Debug: Log output parameters from wsValidaEmpresa.wsEcweb
+                System.Diagnostics.Debug.WriteLine("=== wsValidaEmpresa.wsEcweb OUTPUT RESULTS ===");
+                System.Diagnostics.Debug.WriteLine("=== verificando ===");
+                System.Diagnostics.Debug.WriteLine($"opiCodigo: {opiCodigo}");
+                System.Diagnostics.Debug.WriteLine($"opcMensaje: '{opcMensaje}'");
+                System.Diagnostics.Debug.WriteLine($"opilContrato: {opilContrato}");
+                System.Diagnostics.Debug.WriteLine($"opilEmpresa: {opilEmpresa}");
+                System.Diagnostics.Debug.WriteLine($"opiGrupo: {opiGrupo}");
+                System.Diagnostics.Debug.WriteLine($"opiCliente: {opiCliente}");
+                System.Diagnostics.Debug.WriteLine("=== END wsValidaEmpresa.wsEcweb RESULTS ===");
+
                 response.opcMensaje = opcMensaje;
                 response.opiCodigo = opiCodigo;
                 response.opiIdcontrato = opilContrato;       
