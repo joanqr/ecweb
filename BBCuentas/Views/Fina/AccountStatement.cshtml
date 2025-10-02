@@ -258,8 +258,6 @@
 
             // Evento change para cargar meses cuando se selecciona un contrato
             $('#finaContract').on('change', function () {
-                console.log('=== EVENTO CHANGE CONTRATO ACTIVADO ===');
-                console.log('Valor seleccionado:', $(this).val());
                 loadAvailableMonths();
             });
 
@@ -279,11 +277,6 @@
                         contractSelect.empty().append('<option value="">Seleccione un contrato...</option>');
 
                         $.each(response.data, function (index, contract) {
-                            console.log('Cargando contrato:', contract);
-                            console.log('GrupoCliente:', contract.GrupoCliente);
-                            console.log('ContractNumber:', contract.ContractNumber);
-                            console.log('Empresa:', contract.Empresa);
-
                             // Determinar si debe mostrar CS: longitud 5 caracteres y empresa Fina (1 o "Fina")
                             var contractNumber = contract.ContractNumber.toString();
                             var isFinaCompany = contract.Empresa === 'Fina' || contract.Empresa === 1 || contract.Empresa === '1';
@@ -291,12 +284,6 @@
 
                             // Formatear el número de contrato para mostrar
                             var displayContractNumber = shouldAddCS ? contractNumber + 'CS' : contractNumber;
-
-                            console.log('Contract length:', contractNumber.length);
-                            console.log('Company:', contract.Empresa);
-                            console.log('Is Fina company:', isFinaCompany);
-                            console.log('Should add CS:', shouldAddCS);
-                            console.log('Display contract number:', displayContractNumber);
 
                             contractSelect.append('<option value="' + contract.GrupoCliente + '">' +
                                 'Contrato: ' + displayContractNumber + ' - Grupo: ' + contract.GrupoCliente + ' (GC Conautopcion)</option>');
@@ -324,19 +311,13 @@
             var contract = $('#finaContract').val();
             var monthSelect = $('#finaMonth');
 
-            console.log('=== INICIO loadAvailableMonths ===');
-            console.log('Contract seleccionado:', contract);
-            console.log('monthSelect elemento:', monthSelect.length > 0 ? 'ENCONTRADO' : 'NO ENCONTRADO');
-
             if (!contract) {
-                console.log('No hay contrato seleccionado, saliendo...');
                 monthSelect.empty().append('<option value="">Primero seleccione un contrato...</option>');
                 return;
             }
 
             // Mostrar loading
             monthSelect.empty().append('<option value="">Cargando meses disponibles...</option>');
-            console.log('Iniciando consulta AJAX...');
 
             // Consultar API REST a través del proxy del servidor
             $.ajax({
@@ -346,42 +327,17 @@
                 success: function (response) {
                     monthSelect.empty().append('<option value="">Seleccione mes...</option>');
 
-                    // Debug: Mostrar respuesta completa del servidor
-                    console.log('=== RESPUESTA COMPLETA DEL SERVIDOR ===');
-                    console.log('Response:', response);
-                    console.log('Response.success:', response.success);
-                    console.log('Response.data:', response.data);
-
-                    // Mostrar JSON como string para ver estructura exacta
-                    console.log('=== JSON COMO STRING ===');
-                    console.log('Response como JSON string:', JSON.stringify(response, null, 2));
-                    console.log('Response.data como JSON string:', JSON.stringify(response.data, null, 2));
-                    console.log('=== FIN JSON STRING ===');
-
-                    console.log('=== FIN RESPUESTA SERVIDOR ===');
-
                     if (response.success && response.data) {
                         var apiData = response.data;
-
-                        console.log('=== VERIFICANDO ESTRUCTURA JSON ===');
-                        console.log('apiData type:', Array.isArray(apiData) ? 'Array' : typeof apiData);
-                        console.log('apiData.estatus:', apiData.estatus);
-                        console.log('apiData.archivos existe:', !!apiData.archivos);
-                        console.log('apiData es array:', Array.isArray(apiData));
-                        console.log('apiData length si es array:', Array.isArray(apiData) ? apiData.length : 'N/A');
-                        console.log('apiData completo:', apiData);
-                        console.log('=== FIN VERIFICACIÓN ===');
 
                         var archivosArray = null;
 
                         // Verificar si apiData es directamente el array de archivos
                         if (Array.isArray(apiData) && apiData.length > 0) {
-                            console.log('=== DETECTADO ARRAY DIRECTO ===');
                             archivosArray = apiData;
                         }
                         // O si tiene la estructura esperada {estatus: true, archivos: [...]}
                         else if (apiData.estatus === true && apiData.archivos && apiData.archivos.length > 0) {
-                            console.log('=== DETECTADO OBJETO CON ESTATUS ===');
                             archivosArray = apiData.archivos;
                         }
 
@@ -404,32 +360,16 @@
 
                             var objetosConMes = encontrarObjetosConMes(archivosArray);
 
-                            console.log('=== BÚSQUEDA DE OBJETOS CON MES ===');
-                            console.log('Objetos encontrados con mes:', objetosConMes);
-                            console.log('Cantidad encontrada:', objetosConMes.length);
-                            console.log('=== FIN BÚSQUEDA ===');
-
                             if (objetosConMes.length > 0) {
                                 availableMonths = objetosConMes;
 
-                                console.log('=== PROCESANDO MESES ENCONTRADOS ===');
                                 $.each(objetosConMes, function (index, archivoObj) {
-                                    console.log('Procesando mes ' + index + ':', archivoObj);
-                                    console.log('archivoObj.mes:', archivoObj.mes);
-
                                     if (archivoObj.mes) {
                                         var monthName = archivoObj.mes.charAt(0).toUpperCase() + archivoObj.mes.slice(1);
                                         monthSelect.append('<option value="' + archivoObj.mes + '">' + monthName + '</option>');
-                                        console.log('Mes agregado:', archivoObj.mes, '->', monthName);
                                     }
                                 });
-                                console.log('=== FIN PROCESAMIENTO MESES ENCONTRADOS ===');
-                            } else {
-                                console.log('=== NO SE ENCONTRARON OBJETOS CON MES ===');
                             }
-
-                            console.log('=== FIN PROCESAMIENTO MESES ===');
-                            console.log('Options en monthSelect después del procesamiento:', monthSelect.find('option').length);
 
                             var successMsg = 'Se encontraron ' + archivosArray.length + ' meses disponibles';
                             if (response.fallback) {
@@ -437,14 +377,6 @@
                             }
                             showMessage(successMsg, 'success');
                         } else {
-                            console.log('=== CONDICIÓN FALLA ===');
-                            console.log('Es array:', Array.isArray(apiData));
-                            console.log('Array length:', Array.isArray(apiData) ? apiData.length : 'N/A');
-                            console.log('estatus === true:', apiData.estatus === true);
-                            console.log('archivos existe:', !!apiData.archivos);
-                            console.log('archivos.length > 0:', apiData.archivos && apiData.archivos.length > 0);
-                            console.log('=== FIN CONDICIÓN FALLA ===');
-
                             // Mostrar mensaje de error como se especifica
                             showErrorMessage();
                         }
@@ -481,13 +413,6 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.log('=== ERROR AJAX ===');
-                    console.log('xhr:', xhr);
-                    console.log('status:', status);
-                    console.log('error:', error);
-                    console.log('responseText:', xhr.responseText);
-                    console.log('=== FIN ERROR AJAX ===');
-
                     monthSelect.empty().append('<option value="">Error al consultar estados de cuenta</option>');
                     showMessage('Error del servidor: ' + error, 'danger');
                 }
@@ -600,13 +525,6 @@
 
             // Manejar el botón Agregar del modal
             $('#btnAgregarFina').on('click', function() {
-                // Verificar que los elementos existan
-                console.log('=== VERIFICANDO ELEMENTOS ===');
-                console.log('finaGpCte element exists:', $('#finaGpCte').length > 0);
-                console.log('finaGpCte2 element exists:', $('#finaGpCte2').length > 0);
-                console.log('finaIdContrato element exists:', $('#finaIdContrato').length > 0);
-                console.log('finaIdCP element exists:', $('#finaIdCP').length > 0);
-                console.log('finaDatepicker element exists:', $('#finaDatepicker').length > 0);
 
                 var grupocliente1Raw = $('#finaGpCte').val();
                 var grupocliente2Raw = $('#finaGpCte2').val();
@@ -621,50 +539,23 @@
                 // Los campos son opcionales
                 var tieneGrupoCliente = (grupocliente1 !== '0' || grupocliente2 !== '0');
 
-                // Debugging adicional de valores raw y procesados
-                console.log('=== VALORES RAW ===');
-                console.log('finaGpCte raw value:', grupocliente1Raw);
-                console.log('finaGpCte2 raw value:', grupocliente2Raw);
-                console.log('finaIdContrato raw value:', contratoOriginal);
-                console.log('finaIdCP raw value:', codigoPostal);
-                console.log('finaDatepicker raw value:', fechaNacimiento);
-
-                console.log('=== DEBUGGING AGREGAR CONTRATO ===');
-                console.log('grupocliente1 (raw):', grupocliente1Raw);
-                console.log('grupocliente1 (procesado):', grupocliente1);
-                console.log('grupocliente2 (raw):', grupocliente2Raw);
-                console.log('grupocliente2 (procesado):', grupocliente2);
-                console.log('tieneGrupoCliente:', tieneGrupoCliente);
-                console.log('contratoOriginal:', contratoOriginal);
-                console.log('codigoPostal:', codigoPostal);
-                console.log('fechaNacimiento:', fechaNacimiento);
-                console.log('Concatenación grupo+cliente:', grupocliente1 + grupocliente2);
-
                 // Validar campos obligatorios (solo contrato, CP y fecha son obligatorios)
                 if (!contratoOriginal || !codigoPostal || !fechaNacimiento) {
-                    console.log('ERROR: Faltan campos obligatorios');
-                    console.log('contratoOriginal vacío:', !contratoOriginal);
-                    console.log('codigoPostal vacío:', !codigoPostal);
-                    console.log('fechaNacimiento vacío:', !fechaNacimiento);
-                    showModalMessage('Los campos Contrato, Código Postal y Fecha de Nacimiento son obligatorios', 'error');
+                    showModalMessage('Los campos Contrato, Codigo Postal y Fecha de Nacimiento son obligatorios', 'error');
                     return;
                 }
-
+                
                 // Procesar el número de contrato: si termina con "CS", solo enviar la parte numérica
                 var contratoParaEnvio = contratoOriginal.trim();
                 var contratoParaMostrar = contratoOriginal.trim();
 
                 if (contratoParaEnvio.toUpperCase().endsWith('CS')) {
                     contratoParaEnvio = contratoParaEnvio.substring(0, contratoParaEnvio.length - 2);
-                    console.log('Contrato procesado: ' + contratoOriginal + ' -> ' + contratoParaEnvio + ' (para envío)');
                 }
 
                 // Formatear fecha para el servidor (MM/dd/yyyy)
                 var fechaTokens = fechaNacimiento.split("/");
                 var fechaFormateada = fechaTokens[1] + "/" + fechaTokens[0] + "/" + fechaTokens[2];
-
-                console.log('Fecha original:', fechaNacimiento);
-                console.log('Fecha formateada:', fechaFormateada);
 
                 // Preparar datos para enviar
                 var dataToSend = {
@@ -676,11 +567,6 @@
                     DateCte: fechaFormateada
                 };
 
-                console.log('=== DATOS ENVIADOS AL SERVIDOR ===');
-                console.log('URL:', '@Url.Action("InsertFinaContract", "Fina")');
-                console.log('Datos como objeto:', dataToSend);
-                console.log('Datos como JSON:', JSON.stringify(dataToSend));
-                console.log('=== FIN DATOS ENVIADOS ===');
 
                 // Enviar datos al servidor
                 $.ajax({
@@ -688,25 +574,8 @@
                     type: "POST",
                     url: "@Url.Action("InsertFinaContract", "Fina")",
                     data: JSON.stringify(dataToSend),
-                    beforeSend: function() {
-                        console.log('=== ENVIANDO PETICIÓN AL SERVIDOR ===');
-                    },
                     success: function (data) {
-                        console.log('=== RESPUESTA DEL SERVIDOR ===');
-                        console.log('Respuesta completa:', data);
-                        console.log('data.result:', data.result);
-                        console.log('data.mensaje:', data.mensaje);
-                        console.log('data.contract:', data.contract);
-                        console.log('data.dbVerified:', data.dbVerified);
-                        console.log('Tipo de data.result:', typeof data.result);
-                        console.log('=== FIN RESPUESTA SERVIDOR ===');
-
                         if (data.result) {
-                            console.log('=== CONTRATO AGREGADO EXITOSAMENTE ===');
-                            console.log('Contract object from server:', data.contract);
-                            console.log('Mensaje del servidor:', data.mensaje);
-                            console.log('Contrato guardado en base de datos SQL: ✓');
-                            console.log('Verificación en BD:', data.dbVerified ? '✓ CONFIRMADO' : '⚠ NO VERIFICADO');
 
                             // Usar los datos que regresa el servidor
                             var contractFromServer = data.contract;
@@ -725,13 +594,6 @@
                             var optionText = 'Contrato: ' + displayContractNumber + ' - Grupo: ' + serverGrupoCliente + ' (GC Conautopcion)';
                             var optionValue = serverGrupoCliente;
 
-                            console.log('Datos del servidor para la opción:');
-                            console.log('Server Contract Number:', serverContractNumber);
-                            console.log('Server Grupo Cliente:', serverGrupoCliente);
-                            console.log('Server Empresa:', serverEmpresa);
-                            console.log('Display Contract Number:', displayContractNumber);
-                            console.log('Option Value:', optionValue);
-                            console.log('Option Text:', optionText);
 
                             $('#finaContract').append('<option value="' + optionValue + '">' + optionText + '</option>');
 
@@ -740,19 +602,10 @@
                             // Limpiar el formulario
                             $('#finaContractForm')[0].reset();
                         } else {
-                            console.log('=== ERROR AL AGREGAR CONTRATO ===');
-                            console.log('Mensaje de error:', data.mensaje);
                             showModalMessage(data.mensaje, 'error');
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.log('=== ERROR AJAX ===');
-                        console.log('Status:', status);
-                        console.log('Error:', error);
-                        console.log('ResponseText:', xhr.responseText);
-                        console.log('StatusCode:', xhr.status);
-                        console.log('=== FIN ERROR AJAX ===');
-
                         showModalMessage('Error del servidor: ' + error + ' (Status: ' + xhr.status + ')', 'error');
                     }
                 });
@@ -760,28 +613,15 @@
         });
 
         function showModalMessage(message, type) {
-            console.log('=== SHOW MODAL MESSAGE ===');
-            console.log('Message:', message);
-            console.log('Type:', type);
-
             if (type === 'error') {
-                console.log('Mostrando modal de error');
                 var errorElement = $('#MensajeError .modal-body p');
-                console.log('Elemento encontrado:', errorElement.length > 0);
                 errorElement.text(message);
                 $('#MensajeError').modal('show');
-                console.log('Modal de error mostrado');
             } else if (type === 'success') {
-                console.log('Mostrando modal de éxito');
                 var successElement = $('#MensajeOK .modal-body p');
-                console.log('Elemento encontrado:', successElement.length > 0);
                 successElement.text(message);
                 $('#MensajeOK').modal('show');
-                console.log('Modal de éxito mostrado');
-            } else {
-                console.log('Tipo de mensaje no reconocido:', type);
             }
-            console.log('=== FIN SHOW MODAL MESSAGE ===');
         }
     </script>
     <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>

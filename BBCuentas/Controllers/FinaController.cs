@@ -151,11 +151,6 @@ namespace BBCuentas.Controllers
                 if (result.Success)
                 {
                     // Debug: Mostrar datos que se van a enviar al cliente
-                    System.Diagnostics.Debug.WriteLine("=== DATOS ENVIADOS AL CLIENTE ===");
-                    System.Diagnostics.Debug.WriteLine($"Success: true");
-                    System.Diagnostics.Debug.WriteLine($"Data type: {result.Data?.GetType()?.Name ?? "null"}");
-                    System.Diagnostics.Debug.WriteLine($"Data: {Newtonsoft.Json.JsonConvert.SerializeObject(result.Data)}");
-                    System.Diagnostics.Debug.WriteLine("=== FIN DATOS CLIENTE ===");
 
                     return Json(new
                     {
@@ -221,13 +216,6 @@ echo Exit code: %ERRORLEVEL% >> ""{tempLogFile}""
 
                 System.IO.File.WriteAllText(tempBatFile, batContent);
 
-                // Debug: Mostrar archivos creados
-                System.Diagnostics.Debug.WriteLine("=== ARCHIVOS TEMPORALES CREADOS ===");
-                System.Diagnostics.Debug.WriteLine($"JSON File: {tempJsonFile}");
-                System.Diagnostics.Debug.WriteLine($"BAT File: {tempBatFile}");
-                System.Diagnostics.Debug.WriteLine($"Output File: {tempOutputFile}");
-                System.Diagnostics.Debug.WriteLine($"JSON Content: {jsonContent}");
-                System.Diagnostics.Debug.WriteLine("=== FIN ARCHIVOS ===");
 
                 // Ejecutar archivo BAT sincrónicamente
                 var processInfo = new System.Diagnostics.ProcessStartInfo
@@ -238,37 +226,24 @@ echo Exit code: %ERRORLEVEL% >> ""{tempLogFile}""
                     WorkingDirectory = System.IO.Path.GetTempPath()
                 };
 
-                System.Diagnostics.Debug.WriteLine("=== EJECUTANDO BAT ===");
-                System.Diagnostics.Debug.WriteLine($"Comando: {tempBatFile}");
-                System.Diagnostics.Debug.WriteLine("=== INICIO EJECUCIÓN ===");
 
                 using (var process = System.Diagnostics.Process.Start(processInfo))
                 {
                     var processFinished = process.WaitForExit(30000); // 30 segundos timeout
 
-                    System.Diagnostics.Debug.WriteLine($"=== PROCESO TERMINADO ===");
-                    System.Diagnostics.Debug.WriteLine($"Proceso terminó: {processFinished}");
-                    System.Diagnostics.Debug.WriteLine($"HasExited: {process.HasExited}");
 
                     try
                     {
-                        System.Diagnostics.Debug.WriteLine($"ExitCode: {process.ExitCode}");
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error obteniendo ExitCode: {ex.Message}");
                     }
 
                     // Verificar si archivo de respuesta existe
-                    System.Diagnostics.Debug.WriteLine($"=== VERIFICANDO ARCHIVO RESPUESTA ===");
-                    System.Diagnostics.Debug.WriteLine($"Archivo esperado: {tempOutputFile}");
-                    System.Diagnostics.Debug.WriteLine($"Archivo existe: {System.IO.File.Exists(tempOutputFile)}");
 
                     if (System.IO.File.Exists(tempOutputFile))
                     {
                         var fileInfo = new System.IO.FileInfo(tempOutputFile);
-                        System.Diagnostics.Debug.WriteLine($"Tamaño archivo: {fileInfo.Length} bytes");
-                        System.Diagnostics.Debug.WriteLine($"Última modificación: {fileInfo.LastWriteTime}");
                     }
 
                     // Leer archivo de respuesta
@@ -277,11 +252,6 @@ echo Exit code: %ERRORLEVEL% >> ""{tempLogFile}""
                         var output = System.IO.File.ReadAllText(tempOutputFile);
 
                         // Debug: Mostrar contenido del archivo de respuesta
-                        System.Diagnostics.Debug.WriteLine("=== CONTENIDO ARCHIVO RESPUESTA COMPLETO ===");
-                        System.Diagnostics.Debug.WriteLine($"Longitud: {output.Length} caracteres");
-                        System.Diagnostics.Debug.WriteLine("Contenido:");
-                        System.Diagnostics.Debug.WriteLine(output);
-                        System.Diagnostics.Debug.WriteLine("=== FIN ARCHIVO RESPUESTA ===");
 
                         // Procesar respuesta
                         var result = ProcessCurlOutput(output);
@@ -291,16 +261,10 @@ echo Exit code: %ERRORLEVEL% >> ""{tempLogFile}""
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"=== RESULTADO FALLIDO ===");
-                            System.Diagnostics.Debug.WriteLine($"Error: {result.ErrorMessage}");
-                            System.Diagnostics.Debug.WriteLine("=== FIN RESULTADO FALLIDO ===");
                         }
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("=== ARCHIVO DE RESPUESTA NO EXISTE ===");
-                        System.Diagnostics.Debug.WriteLine("El archivo de salida de curl no se creó");
-                        System.Diagnostics.Debug.WriteLine("=== FIN ARCHIVO NO EXISTE ===");
                     }
                 }
 
@@ -309,7 +273,6 @@ echo Exit code: %ERRORLEVEL% >> ""{tempLogFile}""
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"=== ERROR EN CallApiWithGetAndBody: {ex.Message} ===");
                 return CallApiWithQueryString(grupocliente, $"Error ejecutando BAT: {ex.Message}");
             }
             finally
@@ -341,11 +304,6 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                 System.IO.File.WriteAllText(tempBatFile, batContent);
 
                 // Debug: Mostrar fallback
-                System.Diagnostics.Debug.WriteLine("=== FALLBACK BAT CREADO ===");
-                System.Diagnostics.Debug.WriteLine($"BAT File: {tempBatFile}");
-                System.Diagnostics.Debug.WriteLine($"Output File: {tempOutputFile}");
-                System.Diagnostics.Debug.WriteLine($"URL: {fallbackUrl}");
-                System.Diagnostics.Debug.WriteLine("=== FIN FALLBACK BAT ===");
 
                 // Ejecutar BAT fallback
                 var processInfo = new System.Diagnostics.ProcessStartInfo
@@ -366,9 +324,6 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                         var output = System.IO.File.ReadAllText(tempOutputFile);
 
                         // Debug: Mostrar respuesta fallback
-                        System.Diagnostics.Debug.WriteLine("=== FALLBACK RESPUESTA ===");
-                        System.Diagnostics.Debug.WriteLine(output);
-                        System.Diagnostics.Debug.WriteLine("=== FIN FALLBACK RESPUESTA ===");
 
                         // Procesar respuesta fallback
                         var result = ProcessCurlOutput(output);
@@ -417,11 +372,6 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                 var jsonResponse = curlOutput.Trim();
 
                 // Debug: Mostrar JSON recibido
-                System.Diagnostics.Debug.WriteLine("=== JSON DIRECTO (SIN HEADERS) ===");
-                System.Diagnostics.Debug.WriteLine($"Longitud JSON: {jsonResponse.Length} caracteres");
-                System.Diagnostics.Debug.WriteLine("JSON contenido:");
-                System.Diagnostics.Debug.WriteLine(jsonResponse);
-                System.Diagnostics.Debug.WriteLine("=== FIN JSON DIRECTO ===");
 
                 if (!string.IsNullOrWhiteSpace(jsonResponse))
                 {
@@ -430,20 +380,13 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                         var apiResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponseModel>(jsonResponse);
 
                         // Debug: Mostrar estructura del objeto deserializado
-                        System.Diagnostics.Debug.WriteLine("=== JSON DESERIALIZADO EXITOSAMENTE ===");
-                        System.Diagnostics.Debug.WriteLine($"Tipo deserializado: {apiResponse?.GetType()?.Name ?? "null"}");
-                        System.Diagnostics.Debug.WriteLine($"Estatus: {apiResponse?.estatus}");
-                        System.Diagnostics.Debug.WriteLine($"Estado cuenta: {apiResponse?.estadocuenta}");
-                        System.Diagnostics.Debug.WriteLine($"Archivos count: {apiResponse?.archivos?.Count ?? 0}");
 
                         if (apiResponse?.archivos != null)
                         {
                             foreach (var archivo in apiResponse.archivos)
                             {
-                                System.Diagnostics.Debug.WriteLine($"  - Mes: {archivo.mes}, Archivo: {archivo.Archivo?.Length ?? 0} caracteres");
                             }
                         }
-                        System.Diagnostics.Debug.WriteLine("=== FIN ESTRUCTURA DESERIALIZADA ===");
 
                         return new ApiResult
                         {
@@ -454,7 +397,6 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                     }
                     catch (Exception jsonEx)
                     {
-                        System.Diagnostics.Debug.WriteLine($"=== ERROR DESERIALIZACIÓN: {jsonEx.Message} ===");
 
                         // Si falla la deserialización, tal vez tenemos headers mezclados
                         // Intentar extraer JSON como fallback
@@ -493,7 +435,6 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
             try
             {
                 // Fallback: si hay headers mezclados, intentar extraer JSON
-                System.Diagnostics.Debug.WriteLine("=== INTENTANDO EXTRAER JSON DE OUTPUT MIXTO ===");
 
                 var lines = mixedOutput.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
                 var jsonStartIndex = -1;
@@ -511,15 +452,11 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                 {
                     var jsonResponse = string.Join("", lines.Skip(jsonStartIndex));
 
-                    System.Diagnostics.Debug.WriteLine("=== JSON EXTRAÍDO DE MIXTO ===");
-                    System.Diagnostics.Debug.WriteLine(jsonResponse);
-                    System.Diagnostics.Debug.WriteLine("=== FIN JSON EXTRAÍDO ===");
 
                     if (!string.IsNullOrWhiteSpace(jsonResponse))
                     {
                         var apiResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponseModel>(jsonResponse);
 
-                        System.Diagnostics.Debug.WriteLine("=== JSON MIXTO DESERIALIZADO EXITOSAMENTE ===");
 
                         return new ApiResult
                         {
@@ -553,24 +490,20 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                 if (!string.IsNullOrEmpty(jsonFile) && System.IO.File.Exists(jsonFile))
                 {
                     System.IO.File.Delete(jsonFile);
-                    System.Diagnostics.Debug.WriteLine($"=== ELIMINADO: {jsonFile} ===");
                 }
 
                 if (!string.IsNullOrEmpty(batFile) && System.IO.File.Exists(batFile))
                 {
                     System.IO.File.Delete(batFile);
-                    System.Diagnostics.Debug.WriteLine($"=== ELIMINADO: {batFile} ===");
                 }
 
                 if (!string.IsNullOrEmpty(outputFile) && System.IO.File.Exists(outputFile))
                 {
                     System.IO.File.Delete(outputFile);
-                    System.Diagnostics.Debug.WriteLine($"=== ELIMINADO: {outputFile} ===");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"=== ERROR LIMPIANDO ARCHIVOS: {ex.Message} ===");
             }
         }
 
@@ -605,9 +538,101 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                 DataTable dtExixteContrato;
                 int idCliente = Convert.ToInt32(Request.Cookies["Usuario"].Value.ToString());
 
-                System.Diagnostics.Debug.WriteLine("=== VALIDANDO CONTRATO EXISTENTE ===");
-                System.Diagnostics.Debug.WriteLine($"Contrato a validar: {usuario.iContrato}");
-                System.Diagnostics.Debug.WriteLine($"Usuario: {idCliente}");
+
+                // PASO 1: Consultar primero el webservice wsValidaEmpresa
+                bool webServiceSuccess = false;
+                bool consultarTbleqplnsof = false;
+
+                if (usuario.iContrato > 0)
+                {
+
+                    // Preparar variables para el webservice (misma lógica que AccountStatementController)
+                    WSValidaEmpresa.wsecwebObjClient wsValidaEmpresa = new WSValidaEmpresa.wsecwebObjClient();
+                    WSValidaEmpresa.wsEcwebResponse response = new WSValidaEmpresa.wsEcwebResponse();
+                    WSValidaEmpresa.wsEcwebRequest request = new WSValidaEmpresa.wsEcwebRequest();
+
+                    int? opiCodigo;
+                    string opcMensaje = "";
+                    int? opilContrato;
+                    int? opilEmpresa;
+                    int? opiGrupo;
+                    int? opiCliente;
+
+                    request.ipiContrato = usuario.iContrato;
+                    request.ipiGrupo = usuario.gpoCte1;
+                    request.ipiCliente = usuario.gpoCte2;
+                    request.ipcNombre = usuario.cNombre;
+                    request.ipcPrimerap = usuario.cPrimerApellido;
+                    request.ipcSegundoap = usuario.cSegundoApellido;
+                    request.ipiCp = usuario.CP;
+                    request.ipcFecha = usuario.DateCte.ToString("yyyy-MM-dd");
+
+
+                    try
+                    {
+                        wsValidaEmpresa.wsEcweb(request.ipiContrato, request.ipiGrupo, request.ipiCliente, request.ipcNombre, request.ipcPrimerap, request.ipcSegundoap, request.ipiCp, request.ipcFecha, out opiCodigo, out opcMensaje, out opilContrato, out opilEmpresa, out opiGrupo, out opiCliente);
+
+
+                        if (opilEmpresa > 0)
+                        {
+                            webServiceSuccess = true;
+
+                            // Actualizar datos con la respuesta del webservice
+                            usuario.TipoFina = Convert.ToInt32(opilEmpresa);
+                            usuario.iContrato = Convert.ToInt32(opilContrato);
+                            usuario.gpoCte1 = Convert.ToInt32(opiGrupo);
+                            usuario.gpoCte2 = Convert.ToInt32(opiCliente);
+
+                        }
+                        else
+                        {
+                            webServiceSuccess = false;
+                            consultarTbleqplnsof = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        webServiceSuccess = false;
+                        consultarTbleqplnsof = true;
+                    }
+
+                    // PASO 2: Si el webservice falló, consultar tbleqplnsof
+                    if (consultarTbleqplnsof)
+                    {
+
+                        Hashtable hashTableSOF = new Hashtable();
+                        hashTableSOF.Add("contratosof", usuario.iContrato);
+
+                        DataTable dtContratoSOF = dal.QueryDT("DS_ECWEB",
+                            "SELECT contratosof, cl_grupo, cl_cliente, contratopln, idcte, cie FROM [dbo].[tbleqplnsof] WHERE contratosof = @0",
+                            "H:S:contratosof", hashTableSOF, System.Web.HttpContext.Current);
+
+
+                        if (dtContratoSOF.Rows.Count > 0)
+                        {
+                            webServiceSuccess = true; // Marcar como exitoso para continuar con la inserción
+                            DataRow rowSOF = dtContratoSOF.Rows[0];
+
+
+                            // Usar los valores de tbleqplnsof
+                            usuario.gpoCte1 = Convert.ToInt32(rowSOF["cl_grupo"]);
+                            usuario.gpoCte2 = Convert.ToInt32(rowSOF["cl_cliente"]);
+
+                        }
+                        else
+                        {
+                            succes = false;
+                            return Json(new { result = succes, mensaje = $"Contrato no encontrado: {usuario.iContrato}", contract = new Contract() });
+                        }
+                    }
+                }
+
+                // Solo continuar si alguna de las validaciones fue exitosa
+                if (!webServiceSuccess)
+                {
+                    succes = false;
+                    return Json(new { result = succes, mensaje = $"Contrato no encontrado: {usuario.iContrato}", contract = new Contract() });
+                }
 
                 if (usuario.iContrato > 0)
                 {
@@ -618,7 +643,6 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                         "SELECT idUsuario FROM [dbo].[Contratos] WHERE iContrato = @0",
                         "H:S:contrato", hashTableParameters, System.Web.HttpContext.Current);
 
-                    System.Diagnostics.Debug.WriteLine($"Total de registros encontrados para el contrato {usuario.iContrato}: {dtExixteContrato.Rows.Count}");
 
                     // Si existe el contrato, verificar si es para este usuario específico
                     if (dtExixteContrato.Rows.Count > 0)
@@ -628,7 +652,6 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                         foreach (DataRow row in dtExixteContrato.Rows)
                         {
                             int usuarioExistente = Convert.ToInt32(row["idUsuario"]);
-                            System.Diagnostics.Debug.WriteLine($"Usuario encontrado: {usuarioExistente}, Usuario actual: {idCliente}");
                             if (usuarioExistente == idCliente)
                             {
                                 contratoExisteParaEsteUsuario = true;
@@ -636,57 +659,34 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                             }
                         }
 
-                        System.Diagnostics.Debug.WriteLine($"¿Contrato existe para este usuario?: {contratoExisteParaEsteUsuario}");
 
                         if (contratoExisteParaEsteUsuario)
                         {
-                            System.Diagnostics.Debug.WriteLine("=== CONTRATO YA EXISTE PARA ESTE USUARIO ===");
                             succes = false;
                             return Json(new { result = succes, mensaje = $"El contrato {usuario.iContrato} ya está registrado para este usuario", contract = new Contract() });
                         }
                     }
 
-                    System.Diagnostics.Debug.WriteLine("=== CONTRATO NO EXISTE PARA ESTE USUARIO, PROCEDIENDO A INSERTAR ===");
 
                     // Proceder con la inserción
                     usuario.idUsuario = idCliente;
 
-                        // Debug: Log datos antes de insertar
-                        System.Diagnostics.Debug.WriteLine("=== INSERTANDO CONTRATO EN BD ===");
-                        System.Diagnostics.Debug.WriteLine($"idUsuario: {usuario.idUsuario}");
-                        System.Diagnostics.Debug.WriteLine($"TipoFina: {usuario.TipoFina}");
-                        System.Diagnostics.Debug.WriteLine($"gpoCte1 (raw): '{usuario.gpoCte1}'");
-                        System.Diagnostics.Debug.WriteLine($"gpoCte2 (raw): '{usuario.gpoCte2}'");
-                        System.Diagnostics.Debug.WriteLine($"gpoCte1 type: {usuario.gpoCte1.GetType().Name}");
-                        System.Diagnostics.Debug.WriteLine($"gpoCte2 type: {usuario.gpoCte2.GetType().Name}");
-                        System.Diagnostics.Debug.WriteLine($"iContrato: {usuario.iContrato}");
-                        System.Diagnostics.Debug.WriteLine($"CP: {usuario.CP}");
-                        System.Diagnostics.Debug.WriteLine($"DateCte: {usuario.DateCte}");
-                        System.Diagnostics.Debug.WriteLine($"cEMail: {usuario.cEMail}");
 
                         // Los campos ya son int, usar directamente (pueden ser 0 si estaban vacíos)
                         int iGrupo = usuario.gpoCte1;
                         int iCliente = usuario.gpoCte2;
 
-                        System.Diagnostics.Debug.WriteLine($"iGrupo calculado: {iGrupo}");
-                        System.Diagnostics.Debug.WriteLine($"iCliente calculado: {iCliente}");
-                        System.Diagnostics.Debug.WriteLine($"Concatenación para display: {iGrupo}{iCliente:000}");
 
                         bool insertResult = usuarioValid.InsertContract(usuario);
-                        System.Diagnostics.Debug.WriteLine($"Resultado inserción: {insertResult}");
 
                         empresa = contrato.ObtieneEmpresPorId(usuario.TipoFina);
-                        System.Diagnostics.Debug.WriteLine($"Empresa obtenida: {empresa}");
 
                         // Crear el Contract object que automáticamente calculará la concatenación
                         contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), Convert.ToString(usuario.gpoCte1) + Convert.ToString(usuario.gpoCte2));
 
                         // Después de crear el contrato, obtener la concatenación real del webservice
                         // mediante la consulta a la BD que usa el mismo formato que Contrato_Repository
-                        System.Diagnostics.Debug.WriteLine($"Contract creado inicialmente - GrupoCliente: {contract.GrupoCliente}");
 
-                        System.Diagnostics.Debug.WriteLine($"Contract creado - Empresa: {contract.Empresa}, ContractNumber: {contract.ContractNumber}, GrupoCliente: {contract.GrupoCliente}");
-                        System.Diagnostics.Debug.WriteLine("=== FIN INSERCIÓN BD ===");
 
                         if (insertResult)
                         {
@@ -705,14 +705,6 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                             {
                                 var grupoClienteReal = dtVerify.Rows[0]["grupocliente"].ToString();
 
-                                System.Diagnostics.Debug.WriteLine("=== VERIFICACIÓN BD ===");
-                                System.Diagnostics.Debug.WriteLine($"Contrato verificado en BD: {dtVerify.Rows[0]["iContrato"]}");
-                                System.Diagnostics.Debug.WriteLine($"Usuario: {dtVerify.Rows[0]["idUsuario"]}");
-                                System.Diagnostics.Debug.WriteLine($"iGrupo: {dtVerify.Rows[0]["iGrupo"]}");
-                                System.Diagnostics.Debug.WriteLine($"iCliente: {dtVerify.Rows[0]["iCliente"]}");
-                                System.Diagnostics.Debug.WriteLine($"iCompania: {dtVerify.Rows[0]["iCompania"]}");
-                                System.Diagnostics.Debug.WriteLine($"grupocliente concatenado (BD): {grupoClienteReal}");
-                                System.Diagnostics.Debug.WriteLine("=== FIN VERIFICACIÓN BD ===");
 
                                 // Actualizar el contract con la concatenación real de la BD
                                 contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), grupoClienteReal);
@@ -720,14 +712,13 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                                 succes = true;
                                 return Json(new {
                                     result = succes,
-                                    mensaje = "Se guardó correctamente la información",
+                                    mensaje = "Contrato agregado correctamente",
                                     contract = contract,
                                     dbVerified = true
                                 });
                             }
                             else
                             {
-                                System.Diagnostics.Debug.WriteLine("ERROR: No se pudo verificar el contrato en la BD");
                                 return Json(new { result = false, mensaje = "Error: No se pudo verificar la inserción en la base de datos", contract = contract });
                             }
                         }
