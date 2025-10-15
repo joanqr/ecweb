@@ -58,9 +58,11 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label>&nbsp;</label>
-                                <button type="submit" class="btn fina-btn text-white form-control">
-                                    <i class="fa fa-search"></i>
-                                    Buscar
+                                <button type="submit" id="btnBuscarFina" class="btn fina-btn text-white form-control">
+                                    <span class="btn-text">
+                                        <i class="fa fa-search"></i>
+                                        Buscar
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -212,7 +214,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" id="btnAgregarFina" class="btn btn-success" data-dismiss="modal">Agregar</button>
+                    <button type="button" id="btnAgregarFina" class="btn btn-success">
+                        <span class="btn-text">Agregar</span>
+                    </button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
                 </div>
             </form>
@@ -268,6 +272,8 @@
         });
 
         function loadFinaContracts() {
+            showSpinner('Cargando contratos GC Conautopcion...');
+
             $.ajax({
                 url: '@Url.Action("GetFinaData", "Fina")',
                 type: 'POST',
@@ -289,8 +295,10 @@
                                 'Contrato: ' + displayContractNumber + ' - Grupo: ' + contract.GrupoCliente + ' (GC Conautopcion)</option>');
                         });
                     }
+                    hideSpinner();
                 },
                 error: function () {
+                    hideSpinner();
                     showMessage('Error al cargar contratos de GC Conautopcion', 'danger');
                 }
             });
@@ -318,6 +326,7 @@
 
             // Mostrar loading
             monthSelect.empty().append('<option value="">Cargando meses disponibles...</option>');
+            showSpinner('Consultando meses disponibles...');
 
             // Consultar API REST a través del proxy del servidor
             $.ajax({
@@ -376,8 +385,10 @@
                                 successMsg += ' (método fallback)';
                             }
                             showMessage(successMsg, 'success');
+                            hideSpinner();
                         } else {
                             // Mostrar mensaje de error como se especifica
+                            hideSpinner();
                             showErrorMessage();
                         }
                     } else {
@@ -407,12 +418,15 @@
                             }
 
                             showMessage(errorMsg, 'danger');
+                            hideSpinner();
                         } else {
+                            hideSpinner();
                             showErrorMessage();
                         }
                     }
                 },
                 error: function (xhr, status, error) {
+                    hideSpinner();
                     monthSelect.empty().append('<option value="">Error al consultar estados de cuenta</option>');
                     showMessage('Error del servidor: ' + error, 'danger');
                 }
@@ -429,7 +443,14 @@
                 return;
             }
 
-            showFinaResults(contract, year, month);
+            // Activar spinner en el botón de búsqueda
+            setButtonLoading('btnBuscarFina', true);
+
+            // Simular un pequeño delay para mostrar el spinner
+            setTimeout(function() {
+                showFinaResults(contract, year, month);
+                setButtonLoading('btnBuscarFina', false);
+            }, 500);
         }
 
         function showFinaResults(contract, year, month) {
@@ -448,8 +469,8 @@
                     '<td>' + monthName + ' ' + year + '</td>' +
                     '<td><span class="badge badge-success">Disponible</span></td>' +
                     '<td>' +
-                    '<button class="btn btn-sm fina-btn text-white" onclick="downloadFinaStatement(\'' + contract + '\', \'' + month + '\')">' +
-                    '<i class="fa fa-download"></i> Descargar PDF' +
+                    '<button id="btnDownload_' + month + '" class="btn btn-sm fina-btn text-white" onclick="downloadFinaStatement(\'' + contract + '\', \'' + month + '\')">' +
+                    '<span class="btn-text"><i class="fa fa-download"></i> Descargar PDF</span>' +
                     '</button>' +
                     '</td>' +
                     '</tr>';
@@ -460,35 +481,45 @@
         }
 
         function downloadFinaStatement(contract, month) {
+            var downloadButtonId = 'btnDownload_' + month;
+
+            // Activar spinner en el botón de descarga
+            setButtonLoading(downloadButtonId, true);
+
             // Buscar el archivo correspondiente
             var selectedFile = availableMonths.find(function(archivo) {
                 return archivo.mes === month;
             });
 
-            if (selectedFile && selectedFile.Archivo) {
-                try {
-                    // Convertir base64 a blob y descargar
-                    var byteCharacters = atob(selectedFile.Archivo);
-                    var byteNumbers = new Array(byteCharacters.length);
-                    for (var i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+            setTimeout(function() {
+                if (selectedFile && selectedFile.Archivo) {
+                    try {
+                        // Convertir base64 a blob y descargar
+                        var byteCharacters = atob(selectedFile.Archivo);
+                        var byteNumbers = new Array(byteCharacters.length);
+                        for (var i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        var byteArray = new Uint8Array(byteNumbers);
+                        var blob = new Blob([byteArray], { type: 'application/pdf' });
+
+                        // Crear enlace de descarga
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = 'EstadoCuenta_' + contract + '_' + selectedFile.mes + '.pdf';
+                        link.click();
+
+                        showMessage('Estado de cuenta descargado exitosamente', 'success');
+                    } catch (error) {
+                        showMessage('Error al procesar el archivo PDF: ' + error.message, 'danger');
                     }
-                    var byteArray = new Uint8Array(byteNumbers);
-                    var blob = new Blob([byteArray], { type: 'application/pdf' });
-
-                    // Crear enlace de descarga
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = 'EstadoCuenta_' + contract + '_' + selectedFile.mes + '.pdf';
-                    link.click();
-
-                    showMessage('Estado de cuenta descargado exitosamente', 'success');
-                } catch (error) {
-                    showMessage('Error al procesar el archivo PDF: ' + error.message, 'danger');
+                } else {
+                    showMessage('Error: No se encontró el archivo para descargar', 'danger');
                 }
-            } else {
-                showMessage('Error: No se encontró el archivo para descargar', 'danger');
-            }
+
+                // Desactivar spinner del botón
+                setButtonLoading(downloadButtonId, false);
+            }, 800); // Un delay un poco más largo para simular la descarga
         }
 
         function showErrorMessage() {
@@ -568,6 +599,9 @@
                 };
 
 
+                // Activar spinner en el botón
+                setButtonLoading('btnAgregarFina', true);
+
                 // Enviar datos al servidor
                 $.ajax({
                     contentType: "application/json; charset=utf-8",
@@ -601,11 +635,19 @@
 
                             // Limpiar el formulario
                             $('#finaContractForm')[0].reset();
+
+                            // Cerrar modal y desactivar spinner
+                            $('#myModalContrato').modal('hide');
                         } else {
                             showModalMessage(data.mensaje, 'error');
                         }
+
+                        // Desactivar spinner del botón
+                        setButtonLoading('btnAgregarFina', false);
                     },
                     error: function (xhr, status, error) {
+                        // Desactivar spinner del botón
+                        setButtonLoading('btnAgregarFina', false);
                         showModalMessage('Error del servidor: ' + error + ' (Status: ' + xhr.status + ')', 'error');
                     }
                 });

@@ -209,7 +209,7 @@ echo === INICIO BAT === > ""{tempLogFile}""
 echo Verificando curl... >> ""{tempLogFile}""
 where curl >> ""{tempLogFile}"" 2>&1
 echo === EJECUTANDO CURL === >> ""{tempLogFile}""
-curl -s -X GET -H ""Accept: application/json"" -H ""Content-Type: application/json"" --data @""{tempJsonFile}"" {_apiEDCHistoricosUrl} > ""{tempOutputFile}"" 2>&1
+curl.exe -s -X GET -H ""Accept: application/json"" -H ""Content-Type: application/json"" --data @""{tempJsonFile}"" {_apiEDCHistoricosUrl} > ""{tempOutputFile}"" 2>&1
 echo === CURL TERMINADO === >> ""{tempLogFile}""
 echo Exit code: %ERRORLEVEL% >> ""{tempLogFile}""
 ";
@@ -298,7 +298,7 @@ echo Exit code: %ERRORLEVEL% >> ""{tempLogFile}""
 
                 // Crear archivo BAT para fallback (sin -i para evitar headers)
                 var batContent = $@"@echo off
-curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutputFile}"" 2>&1
+curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutputFile}"" 2>&1
 ";
 
                 System.IO.File.WriteAllText(tempBatFile, batContent);
@@ -672,60 +672,61 @@ curl -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOutput
                     usuario.idUsuario = idCliente;
 
 
-                        // Los campos ya son int, usar directamente (pueden ser 0 si estaban vacíos)
-                        int iGrupo = usuario.gpoCte1;
-                        int iCliente = usuario.gpoCte2;
+                    // Los campos ya son int, usar directamente (pueden ser 0 si estaban vacíos)
+                    int iGrupo = usuario.gpoCte1;
+                    int iCliente = usuario.gpoCte2;
 
 
-                        bool insertResult = usuarioValid.InsertContract(usuario);
+                    bool insertResult = usuarioValid.InsertContract(usuario);
 
-                        empresa = contrato.ObtieneEmpresPorId(usuario.TipoFina);
+                    empresa = contrato.ObtieneEmpresPorId(usuario.TipoFina);
 
-                        // Crear el Contract object que automáticamente calculará la concatenación
-                        contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), Convert.ToString(usuario.gpoCte1) + Convert.ToString(usuario.gpoCte2));
+                    // Crear el Contract object que automáticamente calculará la concatenación
+                    contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), Convert.ToString(usuario.gpoCte1) + Convert.ToString(usuario.gpoCte2));
 
-                        // Después de crear el contrato, obtener la concatenación real del webservice
-                        // mediante la consulta a la BD que usa el mismo formato que Contrato_Repository
+                    // Después de crear el contrato, obtener la concatenación real del webservice
+                    // mediante la consulta a la BD que usa el mismo formato que Contrato_Repository
 
 
-                        if (insertResult)
+                    if (insertResult)
+                    {
+                        // Verificar y obtener la concatenación real de la BD usando la misma lógica que Contrato_Repository
+                        Hashtable verifyParams = new Hashtable();
+                        verifyParams.Add("contrato", usuario.iContrato);
+                        verifyParams.Add("usuario", usuario.idUsuario);
+
+                        DataTable dtVerify = dal.QueryDT("DS_ECWEB",
+                            "SELECT iContrato, idUsuario, iGrupo, iCliente, iCompania, " +
+                            "CONVERT(varchar(20), iGrupo) + RIGHT('00000000' + CONVERT(varchar(20), iCliente),3) AS grupocliente " +
+                            "FROM [dbo].[Contratos] WHERE iContrato = @0 AND idUsuario = @1",
+                            "H:S:contrato;H:S:usuario", verifyParams, System.Web.HttpContext.Current);
+
+                        if (dtVerify.Rows.Count > 0)
                         {
-                            // Verificar y obtener la concatenación real de la BD usando la misma lógica que Contrato_Repository
-                            Hashtable verifyParams = new Hashtable();
-                            verifyParams.Add("contrato", usuario.iContrato);
-                            verifyParams.Add("usuario", usuario.idUsuario);
+                            var grupoClienteReal = dtVerify.Rows[0]["grupocliente"].ToString();
 
-                            DataTable dtVerify = dal.QueryDT("DS_ECWEB",
-                                "SELECT iContrato, idUsuario, iGrupo, iCliente, iCompania, " +
-                                "CONVERT(varchar(20), iGrupo) + RIGHT('00000000' + CONVERT(varchar(20), iCliente),3) AS grupocliente " +
-                                "FROM [dbo].[Contratos] WHERE iContrato = @0 AND idUsuario = @1",
-                                "H:S:contrato;H:S:usuario", verifyParams, System.Web.HttpContext.Current);
 
-                            if (dtVerify.Rows.Count > 0)
+                            // Actualizar el contract con la concatenación real de la BD
+                            contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), grupoClienteReal);
+
+                            succes = true;
+                            return Json(new
                             {
-                                var grupoClienteReal = dtVerify.Rows[0]["grupocliente"].ToString();
-
-
-                                // Actualizar el contract con la concatenación real de la BD
-                                contract = new Contract(empresa, Convert.ToInt32(usuario.iContrato), grupoClienteReal);
-
-                                succes = true;
-                                return Json(new {
-                                    result = succes,
-                                    mensaje = "Contrato agregado correctamente",
-                                    contract = contract,
-                                    dbVerified = true
-                                });
-                            }
-                            else
-                            {
-                                return Json(new { result = false, mensaje = "Error: No se pudo verificar la inserción en la base de datos", contract = contract });
-                            }
+                                result = succes,
+                                mensaje = "Contrato agregado correctamente",
+                                contract = contract,
+                                dbVerified = true
+                            });
                         }
                         else
                         {
-                            return Json(new { result = false, mensaje = "Error al guardar contrato en la base de datos", contract = contract });
+                            return Json(new { result = false, mensaje = "Error: No se pudo verificar la inserción en la base de datos", contract = contract });
                         }
+                    }
+                    else
+                    {
+                        return Json(new { result = false, mensaje = "Error al guardar contrato en la base de datos", contract = contract });
+                    }
                 }
                 else
                 {

@@ -563,7 +563,7 @@
 
 
         $.ajax({
-            url: '@Url.Action("RecuperaEtiquetaPantallaTipoFinanciamiento", "AccountStatement")',
+            url: '@Url.Action("RecuperaEtiquetaPantallaTipoFinanciamiento", "Login")',
             type: 'POST',
             data: JSON.stringify({}),
             contentType: "application/json;",
@@ -571,10 +571,14 @@
             success: function (result) {
                 $("#EtiquetaPantallaTipoFinanciamiento").text(result.mensaje);
             },
-            error: function () {
-                remoteJSONContent = null;
-                $(".alert").text("Error al seleccionar contrato");
-                $('#MensajeError').modal('show');
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.error('Error al cargar etiqueta de pantalla:', {
+                    status: xhr.status,
+                    response: xhr.responseText,
+                    error: thrownError
+                });
+                // Usar un mensaje por defecto si no se puede cargar desde el servidor
+                $("#EtiquetaPantallaTipoFinanciamiento").text("Llene el campo correspondiente según su tipo de contrato");
             }
         });
 
@@ -644,7 +648,7 @@
             height: 720
         });
         $("#GuiaRegistro").dialog("open");
-    }); triggerGuiaRegistro
+    });
 
 
     $("#btnIngresar").on("click", function () {
@@ -715,9 +719,13 @@
 
         },
         error: function (xhr, ajaxOptions, thrownError) {
-            alert(xhr.status);
-            alert(xhr.responseText);
-            alert(thrownError);
+            console.error('Error en inicio de sesión:', {
+                status: xhr.status,
+                response: xhr.responseText,
+                error: thrownError
+            });
+            $('#myModalErrorContra').modal('show');
+            $('#UsuarioPassIncorrecto').text('Error de conexión. Por favor, intente nuevamente.');
         }
 
     });

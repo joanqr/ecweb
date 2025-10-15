@@ -31,8 +31,6 @@ namespace BBCuentas.Controllers
         [HttpPost]
         public JsonResult RecuperaEtiquetaPantallaTipoFinanciamiento()
         {
-            bool succes = false;
-            string mensajeResp;
             try
             {
                 DAL dal = new DAL();
@@ -41,18 +39,18 @@ namespace BBCuentas.Controllers
 
                 dtEtiquetaPantallaTipoFinanciamiento = dal.QueryDT("DS_ECWEB", "SELECT EtiquetaPantallaTipoFinanciamiento FROM [dbo].[Configuraciones]", "", hashTableParameters, System.Web.HttpContext.Current);
 
-
-                if (dtEtiquetaPantallaTipoFinanciamiento.Rows.Count > 0)
+                if (dtEtiquetaPantallaTipoFinanciamiento != null && dtEtiquetaPantallaTipoFinanciamiento.Rows.Count > 0)
                 {
-                    mensajeResp = dtEtiquetaPantallaTipoFinanciamiento.Rows[0]["EtiquetaPantallaTipoFinanciamiento"].ToString();
-                    return Json(new { mensaje = mensajeResp });
+                    string mensajeResp = dtEtiquetaPantallaTipoFinanciamiento.Rows[0]["EtiquetaPantallaTipoFinanciamiento"].ToString();
+                    return Json(new { mensaje = mensajeResp }, JsonRequestBehavior.AllowGet);
                 }
-                return Json(new { mensaje = "Llene el campo correspondiente según su tipo de contrato " });
+                return Json(new { mensaje = "Llene el campo correspondiente según su tipo de contrato " }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                succes = false;
-                return Json(new { mensaje = "Ocurrio un error al tratar de consultar etiqueta " });
+                // Log del error para debugging
+                System.Diagnostics.Debug.WriteLine($"Error en RecuperaEtiquetaPantallaTipoFinanciamiento: {ex.Message}");
+                return Json(new { mensaje = "Llene el campo correspondiente según su tipo de contrato " }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -168,8 +166,9 @@ namespace BBCuentas.Controllers
             }
             catch (Exception ex)
             {
-
-                return Json(ex);
+                // Log del error para debugging
+                System.Diagnostics.Debug.WriteLine($"Error en LogIn: {ex.Message}");
+                return Json(new { result = 0, role = "", mensajeResp = "Error en el servidor. Por favor, intente nuevamente." }, JsonRequestBehavior.AllowGet);
             }
             // Incluir información del tipo de empresa en la respuesta
             var tipoEmpresaResponse = 2; // Por defecto Conauto

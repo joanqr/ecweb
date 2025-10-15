@@ -232,6 +232,7 @@
     <None Include="Connected Services\WSValidaEmpresa\wsecweb.wsdl" />
     <Content Include="guiaregistro.pdf" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\IISProfile.pubxml" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
