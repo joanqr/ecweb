@@ -467,6 +467,7 @@
             },
             data: JSON.stringify({ TipoFina: $('#TipoFina').val(), gpoCte1: $('#GpCte').val(), gpoCte2: $('#GpCte2').val(), iContrato: $('#idContrato').val(), CP: $('#idCP').val(), cEMail: $('#cEMail').val(), DateCte: FechaFinalFormateada, }),
             success: function (data) {
+                $('#loading').hide();
                 $("#example")[0].reset();
                 if (data.result) {
 
@@ -483,6 +484,16 @@
                     $('#MensajeError').modal('show');
 
                 }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $('#loading').hide();
+                console.error('Error al insertar contrato:', {
+                    status: xhr.status,
+                    response: xhr.responseText,
+                    error: thrownError
+                });
+                $(".alert").text('Error al procesar la solicitud. Por favor, intente nuevamente.');
+                $('#MensajeError').modal('show');
             }
         });
     });

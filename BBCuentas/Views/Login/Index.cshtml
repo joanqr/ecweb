@@ -559,6 +559,9 @@
     </div>
 </div>
 
+<!-- Spinner de carga centrado -->
+<div id="loading" class="loader" style="display:none"></div>
+
 <script type="text/javascript">
 
 
@@ -779,8 +782,19 @@
                   },
             data: JSON.stringify({ email: $("#Email").val()}),
                     success: function (data) {
+                        $('#loading').hide();
                         $('#MyModalContrato').modal('show');
                         $('#mensaje').text(data);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        $('#loading').hide();
+                        console.error('Error al enviar correo de recuperación:', {
+                            status: xhr.status,
+                            response: xhr.responseText,
+                            error: thrownError
+                        });
+                        $('#MyModalContrato').modal('show');
+                        $('#mensaje').text('Error al procesar la solicitud. Por favor, intente nuevamente.');
                     }
                 });
     });
