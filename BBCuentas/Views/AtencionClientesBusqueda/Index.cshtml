@@ -145,12 +145,22 @@
 
         $("#btnBuscar").click(function () {
 
+            // Mostrar spinner centrado
+            $('#loading').show();
             $('html,body').css('cursor', 'progress');
 
             if ($.fn.DataTable.isDataTable('#tbEdoCuenta')) {
                 var tableEdoCuenta = $("#tbEdoCuenta").DataTable();
                 tableEdoCuenta.clear().draw();
                 tableEdoCuenta.destroy();
+            }
+
+            var idEmpresa = $('#classEmpresa').val();
+
+            // Si es empresa 1 (Financiamiento/Fina), usar lógica de Fina
+            if (idEmpresa == 1) {
+                buscarContratosFina();
+                return;
             }
 
             tableEdoCuenta = $('#tbEdoCuenta').DataTable({
@@ -169,7 +179,12 @@
                                 "data": {
                                     "iContrato": $('#txtContrato').val(), "iGrupo": $('#txtGrupo').val(), "iCliente": $('#txtCliente').val(), "idEmpresa": $('#classEmpresa').val()
                                 },
-                                "dataSrc": ""
+                                "dataSrc": "",
+                                "complete": function() {
+                                    // Ocultar spinner cuando termine
+                                    $('#loading').hide();
+                                    $('html,body').css('cursor', 'default');
+                                }
                             },
                             columns:
                                 [
@@ -279,6 +294,178 @@
 
     function DeleteData(id) {
         alert(id);
+    }
+
+    // Función para buscar contratos de Fina (empresa 1)
+    function buscarContratosFina() {
+        var contratoOriginal = $('#txtContrato').val();
+
+        if (!contratoOriginal || contratoOriginal.trim() === '') {
+            $('#loading').hide();
+            $('html,body').css('cursor', 'default');
+            alert('Por favor ingrese un número de contrato');
+            return;
+        }
+
+        // Mostrar spinner mientras se busca
+        $('#loading').show();
+        $('html,body').css('cursor', 'progress');
+
+        var contratoUpper = contratoOriginal.trim().toUpperCase();
+
+        // Verificar si el contrato tiene formato 99999CS (5 dígitos + CS)
+        if (contratoUpper.endsWith('CS') && contratoUpper.length > 2) {
+            // Remover el sufijo CS
+            var contratoSinCS = contratoUpper.substring(0, contratoUpper.length - 2);
+
+            // Verificar que sea numérico
+            if (!isNaN(contratoSinCS)) {
+                // Buscar en tbleqplnsof
+                $.ajax({
+                    url: '@Url.Action("BuscarGrupoClientePorContratoSOF", "Fina")',
+                    type: 'POST',
+                    data: { contratoSinCS: parseInt(contratoSinCS) },
+                    success: function (response) {
+                        if (response.success && response.grupocliente) {
+                            // Usar el grupocliente para buscar estados de cuenta
+                            buscarEstadosCuentaConGrupoCliente(response.grupocliente, contratoOriginal);
+                        } else {
+                            $('#loading').hide();
+                            $('html,body').css('cursor', 'default');
+                            alert('Contrato no encontrado en la base de datos: ' + contratoOriginal);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('#loading').hide();
+                        $('html,body').css('cursor', 'default');
+                        alert('Error al buscar contrato en la base de datos: ' + error);
+                    }
+                });
+                return;
+            }
+        }
+
+        // Si no tiene formato CS, usar el contrato como grupocliente directamente
+        buscarEstadosCuentaConGrupoCliente(contratoOriginal, contratoOriginal);
+    }
+
+    // Función auxiliar para buscar estados de cuenta con un grupocliente
+    function buscarEstadosCuentaConGrupoCliente(grupocliente, contratoMostrar) {
+        console.log('Buscando estados de cuenta para grupocliente:', grupocliente);
+
+        $.ajax({
+            url: '@Url.Action("GetEstadosCuenta", "Fina")',
+            type: 'POST',
+            data: { grupocliente: grupocliente },
+            success: function (response) {
+                $('#loading').hide();
+                $('html,body').css('cursor', 'default');
+
+                console.log('Respuesta completa:', response);
+                console.log('response.success:', response.success);
+                console.log('response.data:', response.data);
+
+                if (response.success && response.data) {
+                    var apiData = response.data;
+                    var resultados = [];
+
+                    console.log('apiData.archivos:', apiData.archivos);
+                    console.log('apiData.archivos length:', apiData.archivos ? apiData.archivos.length : 'null');
+
+                    // Procesar la respuesta de la API de Fina
+                    if (apiData.archivos && apiData.archivos.length > 0) {
+                        apiData.archivos.forEach(function(archivo) {
+                            console.log('Procesando archivo - mes:', archivo.mes, 'tiene Archivo:', !!archivo.Archivo);
+                            if (archivo.mes && archivo.Archivo) {
+                                var resultado = {
+                                    Year: new Date().getFullYear(),
+                                    Month: archivo.mes,
+                                    FilePath: contratoMostrar,
+                                    Base64PDF: archivo.Archivo
+                                };
+                                console.log('Agregando resultado:', resultado);
+                                resultados.push(resultado);
+                            }
+                        });
+                    }
+
+                    console.log('Total resultados procesados:', resultados.length);
+                    console.log('Datos finales para la tabla:', resultados);
+
+                    if (resultados.length === 0) {
+                        alert('No se encontraron estados de cuenta con archivos PDF para el contrato: ' + contratoMostrar);
+                        return;
+                    }
+
+                    // Mostrar resultados en la tabla
+                    tableEdoCuenta = $('#tbEdoCuenta').DataTable({
+                        "destroy": true,
+                        "sort": false,
+                        "searching": false,
+                        "lengthChange": false,
+                        "language": { "url": "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Spanish.json" },
+                        "data": resultados,
+                        columns: [
+                            { "data": "Year", title: "Año" },
+                            { "data": "Month", title: "Mes" },
+                            { "data": "FilePath", title: "No.Contrato" },
+                            {
+                                "title": "PDF",
+                                "orderable": false,
+                                "render": function (data, type, row, meta) {
+                                    return $("<button ></button>", {
+                                        "class": "btn btn-primary btn-visualizar-fina",
+                                        "text": "Visualizar"
+                                    }).append($("<i></i>", {
+                                        "class": "glyphicon glyphicon-plus"
+                                    })).prop("outerHTML");
+                                }
+                            }
+                        ]
+                    });
+
+                    // Evento click para visualizar PDF de Fina
+                    $("#tbEdoCuenta tbody").off("click", ".btn-visualizar-fina");
+                    $("#tbEdoCuenta tbody").on("click", ".btn-visualizar-fina", function (e) {
+                        e.preventDefault();
+                        $('html,body').css('cursor', 'progress');
+
+                        var table = $('#tbEdoCuenta').DataTable();
+                        var rowData = table.row($(this).parents('tr')).data();
+
+                        console.log('Visualizando PDF de Fina:', rowData);
+
+                        if (rowData && rowData.Base64PDF) {
+                            const contentType = 'application/pdf';
+                            const blob = b64toBlob(rowData.Base64PDF, contentType);
+                            const blobUrl = URL.createObjectURL(blob);
+                            $('.report-output').attr('src', blobUrl);
+                            $('#largeModal').modal('show');
+                            $('html,body').css('cursor', 'default');
+                        } else {
+                            $('html,body').css('cursor', 'default');
+                            alert('No se encontró el PDF para este registro');
+                        }
+                    });
+                } else {
+                    console.log('Error en respuesta:', response.message, response.details);
+                    var errorMsg = 'No se encontraron estados de cuenta para el contrato: ' + contratoMostrar;
+                    if (response.message) {
+                        errorMsg += '\n\nDetalle: ' + response.message;
+                        if (response.details && response.details.API_Error) {
+                            errorMsg += '\nError API: ' + response.details.API_Error;
+                        }
+                    }
+                    alert(errorMsg);
+                }
+            },
+            error: function (xhr, status, error) {
+                $('#loading').hide();
+                $('html,body').css('cursor', 'default');
+                console.log('Error AJAX:', xhr.responseText);
+                alert('Error al consultar estados de cuenta de Fina: ' + error);
+            }
+        });
     }
 
     function validarSiNumero(num1) {

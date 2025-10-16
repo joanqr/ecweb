@@ -134,29 +134,44 @@ namespace BBCuentas.Controllers
         {
             try
             {
+                // Log del grupocliente recibido
+                System.Diagnostics.Debug.WriteLine($"[GetEstadosCuenta] Grupocliente recibido: '{grupocliente}'");
+
                 // Verificar acceso de usuario
-                int idCliente = Convert.ToInt32(Request.Cookies["Usuario"].Value.ToString());
-                if (!UsuarioTieneAccesoFina(idCliente))
+                // Si el usuario tiene rol AtencionClientes, no necesita validación de contratos propios
+                bool esAtencionClientes = User.IsInRole("AtencionClientes");
+
+                if (!esAtencionClientes)
                 {
-                    return Json(new
+                    int idCliente = Convert.ToInt32(Request.Cookies["Usuario"].Value.ToString());
+                    if (!UsuarioTieneAccesoFina(idCliente))
                     {
-                        success = false,
-                        message = "Acceso no autorizado"
-                    });
+                        return Json(new
+                        {
+                            success = false,
+                            message = "Acceso no autorizado"
+                        });
+                    }
                 }
 
                 // Usar concatenación Grupo+Cliente para la consulta API
                 var result = CallApiWithGetAndBody(grupocliente);
 
+                System.Diagnostics.Debug.WriteLine($"[GetEstadosCuenta] Result.Success: {result.Success}");
+                if (result.Success && result.Data != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GetEstadosCuenta] Data.estatus: {result.Data.estatus}");
+                    System.Diagnostics.Debug.WriteLine($"[GetEstadosCuenta] Data.archivos count: {result.Data.archivos?.Count ?? 0}");
+                }
+
                 if (result.Success)
                 {
-                    // Debug: Mostrar datos que se van a enviar al cliente
-
                     return Json(new
                     {
                         success = true,
                         data = result.Data,
-                        method = "BAT-GET-WITH-BODY"
+                        method = "BAT-GET-WITH-BODY",
+                        grupocliente = grupocliente
                     });
                 }
                 else
@@ -164,7 +179,7 @@ namespace BBCuentas.Controllers
                     return Json(new
                     {
                         success = false,
-                        message = "Error en API externa:",
+                        message = "Error en API externa",
                         details = new
                         {
                             API_Error = result.ErrorMessage,
@@ -176,6 +191,7 @@ namespace BBCuentas.Controllers
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[GetEstadosCuenta] Exception: {ex.Message}");
                 return Json(new
                 {
                     success = false,
@@ -359,6 +375,8 @@ curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOu
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[ProcessCurlOutput] Output length: {curlOutput?.Length ?? 0}");
+
                 if (string.IsNullOrWhiteSpace(curlOutput))
                 {
                     return new ApiResult
@@ -370,8 +388,7 @@ curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOu
 
                 // Con -s el output debería ser solo JSON, sin headers
                 var jsonResponse = curlOutput.Trim();
-
-                // Debug: Mostrar JSON recibido
+                System.Diagnostics.Debug.WriteLine($"[ProcessCurlOutput] JSON recibido: {jsonResponse.Substring(0, Math.Min(500, jsonResponse.Length))}...");
 
                 if (!string.IsNullOrWhiteSpace(jsonResponse))
                 {
@@ -379,12 +396,15 @@ curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOu
                     {
                         var apiResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponseModel>(jsonResponse);
 
-                        // Debug: Mostrar estructura del objeto deserializado
+                        System.Diagnostics.Debug.WriteLine($"[ProcessCurlOutput] Deserialización exitosa");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessCurlOutput] apiResponse.estatus: {apiResponse?.estatus}");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessCurlOutput] apiResponse.archivos count: {apiResponse?.archivos?.Count ?? 0}");
 
                         if (apiResponse?.archivos != null)
                         {
                             foreach (var archivo in apiResponse.archivos)
                             {
+                                System.Diagnostics.Debug.WriteLine($"[ProcessCurlOutput] Archivo mes: {archivo.mes}, tiene datos: {!string.IsNullOrEmpty(archivo.Archivo)}");
                             }
                         }
 
@@ -397,6 +417,7 @@ curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOu
                     }
                     catch (Exception jsonEx)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[ProcessCurlOutput] Error deserializando: {jsonEx.Message}");
 
                         // Si falla la deserialización, tal vez tenemos headers mezclados
                         // Intentar extraer JSON como fallback
@@ -409,7 +430,7 @@ curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOu
                         return new ApiResult
                         {
                             Success = false,
-                            ErrorMessage = $"Error deserializando JSON: {jsonEx.Message}"
+                            ErrorMessage = $"Error deserializando JSON: {jsonEx.Message}. JSON preview: {jsonResponse.Substring(0, Math.Min(200, jsonResponse.Length))}"
                         };
                     }
                 }
@@ -422,6 +443,7 @@ curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOu
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[ProcessCurlOutput] Exception general: {ex.Message}");
                 return new ApiResult
                 {
                     Success = false,
@@ -736,6 +758,62 @@ curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOu
             catch (Exception ex)
             {
                 return Json(new { result = false, mensaje = "Error al agregar contrato: " + ex.Message, contract = contract });
+            }
+        }
+
+        /// <summary>
+        /// Busca un contrato en tbleqplnsof y devuelve el grupo-cliente concatenado
+        /// para contratos con formato CS (usado por Atención a Clientes y registro)
+        /// </summary>
+        [HttpPost]
+        [AllowAnonymous]
+        public JsonResult BuscarGrupoClientePorContratoSOF(int contratoSinCS)
+        {
+            try
+            {
+                DAL dal = new DAL();
+                Hashtable hashTableSOF = new Hashtable();
+                hashTableSOF.Add("contratoplan", contratoSinCS);
+
+                // Buscar por contratopln (no por contratosof)
+                DataTable dtContratoSOF = dal.QueryDT("DS_ECWEB",
+                    "SELECT contratosof, cl_grupo, cl_cliente, contratopln, idcte, cie FROM [dbo].[tbleqplnsof] WHERE contratopln = @0",
+                    "H:S:contratoplan", hashTableSOF, System.Web.HttpContext.Current);
+
+                if (dtContratoSOF.Rows.Count > 0)
+                {
+                    DataRow rowSOF = dtContratoSOF.Rows[0];
+                    int grupo = Convert.ToInt32(rowSOF["cl_grupo"]);
+                    int cliente = Convert.ToInt32(rowSOF["cl_cliente"]);
+
+                    // Concatenar grupo + cliente con formato: grupo + RIGHT('00000000' + cliente, 3)
+                    string grupoClienteConcatenado = grupo.ToString() + cliente.ToString("000");
+
+                    return Json(new
+                    {
+                        success = true,
+                        grupocliente = grupoClienteConcatenado,
+                        grupo = grupo,
+                        cliente = cliente,
+                        contrato = contratoSinCS
+                    });
+                }
+                else
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"Contrato {contratoSinCS} no encontrado en tbleqplnsof"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Error al buscar contrato en tbleqplnsof: " + ex.Message
+                });
             }
         }
 

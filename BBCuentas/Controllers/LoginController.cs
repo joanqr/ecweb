@@ -7,7 +7,7 @@ using System.Web;
 using System.Web.Configuration;
 using System.Web.Mvc;
 using System.Web.Security;
-using BBCuentas.Helpers;
+// using BBCuentas.Helpers;
 using r3Take.DataAccessLayer;
 using System.Data;
 using System.Configuration;
@@ -234,27 +234,11 @@ namespace BBCuentas.Controllers
             hashTableParameters.Add("contrato", Usuario.iContrato);
             hashTableParameters.Add("grupo", Usuario.gpoCte1);
             hashTableParameters.Add("cliente", Usuario.gpoCte2);
-            if (Usuario.iContrato > 0)
-            {
-                dtExixteContrato = dal.QueryDT("DS_ECWEB", "select idUsuario from [dbo].[Contratos] WHERE iContrato = @0", "H:S:contrato", hashTableParameters, System.Web.HttpContext.Current);
-                response = "Contrato erroneo, favor de validar";
-                if (dtExixteContrato.Rows.Count > 0)
-                {
-                    response = "Este contrato ya fue registrado previamente, favor de ingresar uno diferente.";
-                    return Json(response);
-                }
-            }
 
-            if (Usuario.gpoCte1 > 0)
-            {
-                dtExixteContrato = dal.QueryDT("DS_ECWEB", "select idUsuario from [dbo].[Contratos] WHERE iGrupo = @1 AND iCliente = @2", "H:S:contrato;H:S:grupo;H:S:cliente", hashTableParameters, System.Web.HttpContext.Current);
-                response = "Grupo / Cliente erroneo, favor de validar";
-                if (dtExixteContrato.Rows.Count > 0)
-                {
-                    response = "Este contrato ya fue registrado previamente, favor de ingresar uno diferente.";
-                    return Json(response);
-                }
-            }
+            // NOTA: Las validaciones de contrato existente se han removido aquí
+            // porque un contrato puede ser compartido por múltiples usuarios (familia, etc.)
+            // El webservice wsValidaEmpresa se encarga de validar si el contrato es válido
+            // y el método InsertUsuario verificará si este usuario específico ya tiene este contrato
 
             WSValidaEmpresa.wsecwebObjClient wsValidaEmpresa = new WSValidaEmpresa.wsecwebObjClient();
             WSValidaEmpresa.wsEcwebRequest request = new WSValidaEmpresa.wsEcwebRequest();

@@ -18,7 +18,7 @@
             width: 100%;
             height: 100%;
             z-index: 9999;
-            background: url('Images/pageLoader.gif') 50% 50% no-repeat rgb(249,249,249);
+            background: url('/Content/Images/pageLoader.gif') 50% 50% no-repeat rgb(249,249,249);
             opacity: .8;
         }
 
@@ -618,6 +618,17 @@
     $("#idContrato").focusout(function () {
 
         if ($("#idContrato").val() != "") {
+            var contratoValue = $("#idContrato").val().trim().toUpperCase();
+
+            // Si el contrato tiene formato CS, no validar que exista previamente
+            // La validación se hará durante el submit
+            if (contratoValue.endsWith('CS') && contratoValue.length > 2) {
+                var contratoSinCS = contratoValue.substring(0, contratoValue.length - 2);
+                if (!isNaN(contratoSinCS)) {
+                    // Es formato CS válido, no hacer validación de existencia previa
+                    return;
+                }
+            }
 
         $.ajax({
                 contentType: "application/json; charset=utf-8",
@@ -881,40 +892,55 @@
                 SelectName: { valueNotEquals: "Selecciona una opción por favor." }
             },
             submitHandler: function () {
-                var fecha = $('#datepicker1').val();
-                var fechaToken = fecha.split("/");
-                var FechaFinalFormateada = fechaToken[1] + "/" + fechaToken[0] + "/" + fechaToken[2];
-                var Usuario = JSON.stringify({
-                    cNombre: $('#cNombre').val(),
-                    cPrimerApellido: $('#cPrimerApellido').val(),
-                    cSegundoApellido: $('#cSegundoApellido').val(),
-                    cEMail: $('#cEMail').val(),
-                    cTelMovil: $('#cTelMovil').val(),
-                    TipoFina: $('#TipoFina').val(),
-                    gpoCte1: $('#GpCte').val(),
-                    gpoCte2: $('#GpCte2').val(),
-                    iContrato: $('#idContrato').val(),
-                    CP: $('#idCP').val(),
-                    DateCte: FechaFinalFormateada,
-                    cPasswd: $('#pass').val(),
-                    GpoCteString: $('#GpCte2').val(),
-                });
-                $.ajax({
-                    contentType: "application/json; charset=utf-8",
-                    type: "POST",
-                    url: "@Url.Action("AgregarUsuario", "Login")",
-                    data: Usuario,
-                    success: function (data) {
-                        if (data.indexOf("por registrarse. Recibirá")>5) {
-                            $('#MyModalContratoExito').modal('show');
-                            $('#mensajeExito').text(data);
-                        }
-                        else {
-                            $('#MyModalContrato').modal('show');
-                            $('#mensaje').text(data);
+                var contratoOriginal = $('#idContrato').val();
+
+                // Verificar si el contrato tiene formato CS
+                if (contratoOriginal && contratoOriginal.trim() !== '') {
+                    var contratoUpper = contratoOriginal.trim().toUpperCase();
+
+                    // Detectar formato 99999CS
+                    if (contratoUpper.endsWith('CS') && contratoUpper.length > 2) {
+                        // Extraer solo la parte numérica
+                        var contratoSinCS = contratoUpper.substring(0, contratoUpper.length - 2);
+
+                        // Verificar que sea numérico
+                        if (!isNaN(contratoSinCS)) {
+                            // Mostrar spinner mientras se busca
+                            $('#loading').show();
+
+                            // Buscar en tbleqplnsof para obtener grupo-cliente
+                            $.ajax({
+                                contentType: "application/json; charset=utf-8",
+                                type: "POST",
+                                url: "@Url.Action("BuscarGrupoClientePorContratoSOF", "Fina")",
+                                data: JSON.stringify({ contratoSinCS: parseInt(contratoSinCS) }),
+                                success: function (response) {
+                                    if (response.success && response.grupocliente) {
+                                        // Encontró el contrato, usar grupo y cliente de la respuesta
+                                        console.log('Contrato CS encontrado:', response);
+
+                                        // Procesar el registro con los datos de tbleqplnsof
+                                        procesarRegistroUsuario(response.grupo, response.cliente, contratoOriginal);
+                                    } else {
+                                        $('#loading').hide();
+                                        $('#MyModalContrato').modal('show');
+                                        $('#mensaje').text('Contrato ' + contratoOriginal + ' no encontrado en la base de datos');
+                                    }
+                                },
+                                error: function (xhr, ajaxOptions, thrownError) {
+                                    $('#loading').hide();
+                                    console.error('Error al buscar contrato CS:', thrownError);
+                                    $('#MyModalContrato').modal('show');
+                                    $('#mensaje').text('Error al validar el contrato: ' + thrownError);
+                                }
+                            });
+                            return; // Detener ejecución hasta que se complete la búsqueda
                         }
                     }
-                });
+                }
+
+                // Si no es formato CS o no hay contrato, procesar normalmente
+                procesarRegistroUsuario($('#GpCte').val(), $('#GpCte2').val(), contratoOriginal);
             }
         });
     });
@@ -922,6 +948,85 @@
                 window.location.href = "@Url.Action("Index","Login")";
 
          });
+
+    // Función auxiliar para procesar el registro de usuario
+    function procesarRegistroUsuario(grupo, cliente, contrato) {
+        // Formatear fecha desde el datepicker
+        var fechaNacimiento = $('#datepicker1').val();
+
+        if (!fechaNacimiento) {
+            $('#loading').hide();
+            $('#MyModalContrato').modal('show');
+            $('#mensaje').text('Por favor ingrese la fecha de nacimiento');
+            return;
+        }
+
+        // Convertir fecha de formato dd-mm-yyyy o dd/mm/yyyy a formato esperado por el backend
+        var partesFecha = fechaNacimiento.replace(/\//g, '-').split('-');
+        var fechaFormateada = partesFecha[1] + '/' + partesFecha[0] + '/' + partesFecha[2];
+
+        // Determinar el valor de iContrato:
+        // - Para contratos CS: enviar 0 (se valida por grupo-cliente)
+        // - Para contratos normales: enviar el número del contrato
+        var iContratoValue = 0;
+        if (contrato && contrato.trim() !== '') {
+            var contratoUpper = contrato.trim().toUpperCase();
+            // Si NO es formato CS, usar el número del contrato
+            if (!(contratoUpper.endsWith('CS') && contratoUpper.length > 2)) {
+                iContratoValue = parseInt(contrato) || 0;
+            }
+            // Si ES formato CS, dejarlo en 0
+        }
+
+        // Construir objeto Usuario con todos los campos del formulario
+        var usuario = {
+            bEmpresa: $('#radio1').is(':checked'), // true si es empresa, false si es persona
+            cNombre: $('#cNombre').val(),
+            cPrimerApellido: $('#cPrimerApellido').val(),
+            cSegundoApellido: $('#cSegundoApellido').val(),
+            cEMail: $('#cEMail').val(),
+            cTelMovil: $('#cTelMovil').val(),
+            cPasswd: $('#pass').val(),
+            gpoCte1: parseInt(grupo) || 0,
+            gpoCte2: parseInt(cliente) || 0,
+            GpoCteString: cliente || '',
+            iContrato: iContratoValue,
+            CP: parseInt($('#idCP').val()) || 0,
+            DateCte: fechaFormateada
+        };
+
+        console.log('Enviando usuario para registro:', usuario);
+
+        // Enviar solicitud de registro al backend
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            type: "POST",
+            url: "@Url.Action("AgregarUsuario", "Login")",
+            data: JSON.stringify(usuario),
+            success: function (response) {
+                $('#loading').hide();
+                console.log('Respuesta del servidor:', response);
+
+                if (response.indexOf("Gracias por registrarse") >= 0) {
+                    $('#MyModalContratoExito').modal('show');
+                    $('#mensajeExito').text(response);
+                } else {
+                    $('#MyModalContrato').modal('show');
+                    $('#mensaje').text(response);
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $('#loading').hide();
+                console.error('Error al registrar usuario:', {
+                    status: xhr.status,
+                    response: xhr.responseText,
+                    error: thrownError
+                });
+                $('#MyModalContrato').modal('show');
+                $('#mensaje').text('Error al procesar el registro: ' + thrownError);
+            }
+        });
+    }
 
     function ObtieneOpcionMantenimiento() {
         $.ajax({
