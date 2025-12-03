@@ -7,7 +7,8 @@
       "Bash(csc:*)",
       "Bash(find:*)",
       "Read(//c/Desarrollo/Repo/EdoCuentaWeb/**)",
-      "Bash(where MSBuild)"
+      "Bash(where MSBuild)",
+      "Bash(npm create astro@latest:*)"
     ],
     "deny": [],
     "ask": []

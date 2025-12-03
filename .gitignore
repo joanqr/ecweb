@@ -1,0 +1,13 @@
+## VS/NET ignore
+.claude
+bin/
+obj/
+.vs/
+.claude/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+## build outputs
+**/bin/
+**/obj/

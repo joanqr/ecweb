@@ -17,7 +17,7 @@ namespace BBCuentas.Controllers
     {
         private Usuario_Business usuarioValid = new Usuario_Business();
         private Contrato_Business contrato = new Contrato_Business();
-        private readonly string _apiEDCHistoricosUrl = ConfigurationManager.AppSettings["ApiEDCHistoricosUrl"] ?? "http://172.20.40.61/ApiEDCHistoricos/api/EDCHistoricos";
+        private readonly string _apiEDCHistoricosUrl = ConfigurationManager.AppSettings["ApiEDCHistoricosUrl"] ?? "http://172.20.54.61/ApiEDCHistoricos/api/EDCHistoricos";
 
         [Authorize(Roles = "User")]
         public ActionResult Index(string parametro)
@@ -166,13 +166,19 @@ namespace BBCuentas.Controllers
 
                 if (result.Success)
                 {
-                    return Json(new
+                    var jsonResult = new JsonResult
                     {
-                        success = true,
-                        data = result.Data,
-                        method = "BAT-GET-WITH-BODY",
-                        grupocliente = grupocliente
-                    });
+                        Data = new
+                        {
+                            success = true,
+                            data = result.Data,
+                            method = "BAT-GET-WITH-BODY",
+                            grupocliente = grupocliente
+                        },
+                        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                        MaxJsonLength = int.MaxValue
+                    };
+                    return jsonResult;
                 }
                 else
                 {
@@ -209,6 +215,9 @@ namespace BBCuentas.Controllers
 
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[CallApiWithGetAndBody] URL del API: {_apiEDCHistoricosUrl}");
+                System.Diagnostics.Debug.WriteLine($"[CallApiWithGetAndBody] Grupocliente: {grupocliente}");
+
                 // Crear archivos temporales
                 tempJsonFile = System.IO.Path.GetTempFileName();
                 tempBatFile = System.IO.Path.GetTempFileName().Replace(".tmp", ".bat");
@@ -218,6 +227,7 @@ namespace BBCuentas.Controllers
                 // Crear archivo JSON con el contrato
                 var jsonContent = $"{{\"contrato\":\"{grupocliente}\"}}";
                 System.IO.File.WriteAllText(tempJsonFile, jsonContent);
+                System.Diagnostics.Debug.WriteLine($"[CallApiWithGetAndBody] JSON enviado: {jsonContent}");
 
                 // Crear archivo BAT con comando curl (sin -i para evitar headers)
                 var batContent = $@"@echo off
@@ -788,6 +798,11 @@ curl.exe -s -X GET -H ""Accept: application/json"" ""{fallbackUrl}"" > ""{tempOu
 
                     // Concatenar grupo + cliente con formato: grupo + RIGHT('00000000' + cliente, 3)
                     string grupoClienteConcatenado = grupo.ToString() + cliente.ToString("000");
+
+                    System.Diagnostics.Debug.WriteLine($"[BuscarGrupoClientePorContratoSOF] Contrato: {contratoSinCS}");
+                    System.Diagnostics.Debug.WriteLine($"[BuscarGrupoClientePorContratoSOF] Grupo: {grupo}");
+                    System.Diagnostics.Debug.WriteLine($"[BuscarGrupoClientePorContratoSOF] Cliente: {cliente}");
+                    System.Diagnostics.Debug.WriteLine($"[BuscarGrupoClientePorContratoSOF] GrupoCliente concatenado: {grupoClienteConcatenado}");
 
                     return Json(new
                     {

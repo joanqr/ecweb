@@ -326,9 +326,16 @@
                     type: 'POST',
                     data: { contratoSinCS: parseInt(contratoSinCS) },
                     success: function (response) {
+                        console.log('Respuesta de BuscarGrupoClientePorContratoSOF:', response);
+                        console.log('  - success:', response.success);
+                        console.log('  - grupocliente:', response.grupocliente);
+                        console.log('  - grupo:', response.grupo);
+                        console.log('  - cliente:', response.cliente);
+
                         if (response.success && response.grupocliente) {
-                            // Usar el grupocliente para buscar estados de cuenta
-                            buscarEstadosCuentaConGrupoCliente(response.grupocliente, contratoOriginal);
+                            // Para contratos CS, enviar el contrato original (con CS) al API
+                            // no el grupocliente concatenado
+                            buscarEstadosCuentaConGrupoCliente(contratoOriginal, contratoOriginal);
                         } else {
                             $('#loading').hide();
                             $('html,body').css('cursor', 'default');
